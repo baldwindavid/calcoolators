@@ -1,0 +1,23 @@
+{
+  "name": "calcoolators",
+  "version": "0.0.1",
+  "description": "Cool Calculators",
+  "main": "app.js",
+  "scripts": {
+    "build": "mkdir -p dist && elm make src/Main.elm --optimize --output=dist/app.js && cp index.html dist && cp -r images dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baldwindavid/calcoolators.git"
+  },
+  "author": "David Baldwin <david@baldwindavid.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/baldwindavid/calcoolators/issues"
+  },
+  "homepage": "https://github.com/baldwindavid/calcoolators#readme",
+  "devDependencies": {
+    "elm": "^0.19.1-5",
+    "elm-live": "^4.0.2"
+  }
+}

@@ -6,43 +6,16 @@ import Html.Attributes exposing (..)
 import UI exposing (cardBody, cardContainer, cardHeader, cardHeaderToggleButton, cardTitle, cardsGrid, pageHeader, resourceLink, resourcesContainer)
 import Units.Electricity
     exposing
-        ( GigawattHours(..)
-        , Gigawatts(..)
-        , KilowattHours(..)
-        , Kilowatts(..)
-        , MegawattHours(..)
-        , Megawatts(..)
-        , WattHours(..)
+        ( WattHours(..)
         , Watts(..)
-        , formatGigawattHours
-        , formatGigawatts
-        , formatKilowattHours
-        , formatKilowatts
-        , formatMegawattHours
-        , formatMegawatts
-        , formatWattHours
-        , formatWatts
-        , gigawattHoursToFloat
-        , gigawattHoursToWattHours
-        , gigawattsToFloat
-        , gigawattsToWatts
-        , kilowattHoursToFloat
-        , kilowattHoursToWattHours
-        , kilowattsToFloat
-        , kilowattsToWatts
-        , megawattHoursToFloat
-        , megawattHoursToWattHours
-        , megawattsToFloat
-        , megawattsToWatts
-        , wattHoursToFloat
-        , wattHoursToGigawattHours
-        , wattHoursToKilowattHours
-        , wattHoursToMegawattHours
-        , wattsToFloat
-        , wattsToGigawatts
-        , wattsToKilowatts
-        , wattsToMegawatts
+        , energyToFloat
+        , floatToEnergy
+        , floatToPower
+        , formatEnergy
+        , formatPower
+        , powerToFloat
         )
+import Units.Metric exposing (Prefix(..))
 import Units.Number exposing (formatFloat, formatInt, numberStringToFloat)
 import Units.Time
     exposing
@@ -83,17 +56,6 @@ type Field
     | NoActiveField
 
 
-type alias Model =
-    { watts : Watts
-    , wattHours : WattHours
-    , seconds : Seconds
-    , activeField : Field
-    , typedValue : String
-    , formStatus : CalculationResult
-    , solveMethod : SolveMethod
-    }
-
-
 type CalculationResult
     = Valid
     | Invalid String
@@ -102,13 +64,28 @@ type CalculationResult
 type SolveMethod
     = PowerSolve
     | EnergySolve
-    | TimeSolve
+    | DurationSolve
 
 
 type Example
     = EnergyExample Watts Seconds
     | PowerExample WattHours Seconds
-    | TimeExample Watts WattHours
+    | DurationExample Watts WattHours
+
+
+
+-- MODEL
+
+
+type alias Model =
+    { power : Watts
+    , energy : WattHours
+    , duration : Seconds
+    , activeField : Field
+    , typedValue : String
+    , formStatus : CalculationResult
+    , solveMethod : SolveMethod
+    }
 
 
 
@@ -118,18 +95,18 @@ type Example
 init : { currentTime : Int } -> ( Model, Cmd Msg )
 init { currentTime } =
     let
-        watts =
+        power =
             Watts 30000
 
-        wattHours =
+        energy =
             WattHours 30000
     in
-    ( { watts = watts
+    ( { power = power
       , activeField = NoActiveField
       , typedValue = ""
       , formStatus = Valid
-      , wattHours = wattHours
-      , seconds = Seconds (60 * 60)
+      , energy = energy
+      , duration = Seconds (60 * 60)
       , solveMethod = EnergySolve
       }
     , Cmd.none
@@ -156,7 +133,7 @@ view model =
                     , text "Power"
                     ]
 
-                TimeSolve ->
+                DurationSolve ->
                     [ text "Energy"
                     , span [ class altClass ] [ text "/" ]
                     , text "Power"
@@ -181,22 +158,22 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == PowerSolve) "Solving for Power" "Solve for Power" (SetSolveMethod PowerSolve)
                     ]
                 , cardBody
-                    [ renderField model WattsField "Watts" (model.watts |> wattsToFloat) (model.watts |> formatWatts) PowerSolve
-                    , renderField model KilowattsField "Kilowatts" (model.watts |> wattsToKilowatts |> kilowattsToFloat) (model.watts |> wattsToKilowatts |> formatKilowatts) PowerSolve
-                    , renderField model MegawattsField "Megawatts" (model.watts |> wattsToMegawatts |> megawattsToFloat) (model.watts |> wattsToMegawatts |> formatMegawatts) PowerSolve
-                    , renderField model GigawattsField "Gigawatts" (model.watts |> wattsToGigawatts |> gigawattsToFloat) (model.watts |> wattsToGigawatts |> formatGigawatts) PowerSolve
+                    [ renderMetricField model WattsField model.power Base "Watts" powerToFloat formatPower PowerSolve
+                    , renderMetricField model KilowattsField model.power Kilo "Kilowatts" powerToFloat formatPower PowerSolve
+                    , renderMetricField model MegawattsField model.power Mega "Megawatts" powerToFloat formatPower PowerSolve
+                    , renderMetricField model GigawattsField model.power Giga "Gigawatts" powerToFloat formatPower PowerSolve
                     ]
                 ]
             , cardContainer
-                [ cardHeader (model.solveMethod == TimeSolve)
+                [ cardHeader (model.solveMethod == DurationSolve)
                     [ cardTitle "Time"
-                    , cardHeaderToggleButton (model.solveMethod == TimeSolve) "Solving for Time" "Solve for Time" (SetSolveMethod TimeSolve)
+                    , cardHeaderToggleButton (model.solveMethod == DurationSolve) "Solving for Time" "Solve for Time" (SetSolveMethod DurationSolve)
                     ]
                 , cardBody
-                    [ renderField model SecondsField "Seconds" (model.seconds |> secondsToFloat) (model.seconds |> formatSeconds) TimeSolve
-                    , renderField model MinutesField "Minutes" (model.seconds |> secondsToMinutes |> minutesToFloat) (model.seconds |> secondsToMinutes |> formatMinutes) TimeSolve
-                    , renderField model HoursField "Hours" (model.seconds |> secondsToHours |> hoursToFloat) (model.seconds |> secondsToHours |> formatHours) TimeSolve
-                    , renderField model DaysField "Days" (model.seconds |> secondsToDays |> daysToFloat) (model.seconds |> secondsToDays |> formatDays) TimeSolve
+                    [ renderField model SecondsField "Seconds" (model.duration |> secondsToFloat) (model.duration |> formatSeconds) DurationSolve
+                    , renderField model MinutesField "Minutes" (model.duration |> secondsToMinutes |> minutesToFloat) (model.duration |> secondsToMinutes |> formatMinutes) DurationSolve
+                    , renderField model HoursField "Hours" (model.duration |> secondsToHours |> hoursToFloat) (model.duration |> secondsToHours |> formatHours) DurationSolve
+                    , renderField model DaysField "Days" (model.duration |> secondsToDays |> daysToFloat) (model.duration |> secondsToDays |> formatDays) DurationSolve
                     ]
                 ]
             , cardContainer
@@ -205,20 +182,25 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == EnergySolve) "Solving for Energy" "Solve for Energy" (SetSolveMethod EnergySolve)
                     ]
                 , cardBody
-                    [ renderField model WattHoursField "Watt Hours" (model.wattHours |> wattHoursToFloat) (model.wattHours |> formatWattHours) EnergySolve
-                    , renderField model KilowattHoursField "Kilowatt Hours" (model.wattHours |> wattHoursToKilowattHours |> kilowattHoursToFloat) (model.wattHours |> wattHoursToKilowattHours |> formatKilowattHours) EnergySolve
-                    , renderField model MegawattHoursField "Megawatt Hours" (model.wattHours |> wattHoursToMegawattHours |> megawattHoursToFloat) (model.wattHours |> wattHoursToMegawattHours |> formatMegawattHours) EnergySolve
-                    , renderField model GigawattHoursField "Gigawatt Hours" (model.wattHours |> wattHoursToGigawattHours |> gigawattHoursToFloat) (model.wattHours |> wattHoursToGigawattHours |> formatGigawattHours) EnergySolve
+                    [ renderMetricField model WattHoursField model.energy Base "Watt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model KilowattHoursField model.energy Kilo "Kilowatt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model MegawattHoursField model.energy Mega "Megawatt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model GigawattHoursField model.energy Giga "Gigawatt Hours" energyToFloat formatEnergy EnergySolve
                     ]
                 ]
             ]
         , resourcesContainer "Examples"
             "Click the questions below to auto-fill the form with the solution:"
-            [ resourceLink "The average US home uses 30kWh of energy per day. What is the average power?" (SetExample (PowerExample (KilowattHours 30 |> kilowattHoursToWattHours) (Days 1 |> daysToSeconds)))
-            , resourceLink "How long would it take for a central air unit running at 3000 watts to reach 30 kilowatt hours of energy?" (SetExample (TimeExample (Watts 3000) (KilowattHours 30 |> kilowattHoursToWattHours)))
+            [ resourceLink "The average US home uses 30kWh of energy per day. What is the average power?" (SetExample (PowerExample (floatToEnergy Kilo 30) (Days 1 |> daysToSeconds)))
+            , resourceLink "How long would it take for a central air unit running at 3000 watts to reach 30 kilowatt hours of energy?" (SetExample (DurationExample (Watts 3000) (floatToEnergy Kilo 30)))
             , resourceLink "How much energy would be used by a 100w light bulb in 10 hours?" (SetExample (EnergyExample (Watts 100) (Hours 10 |> hoursToSeconds)))
             ]
         ]
+
+
+renderMetricField : Model -> Field -> unit -> Prefix -> String -> (Prefix -> unit -> Float) -> (Prefix -> unit -> String) -> SolveMethod -> Html Msg
+renderMetricField model field unit prefix label inputFn hintFn solveMethod =
+    renderField model field label (inputFn prefix unit) (hintFn prefix unit) solveMethod
 
 
 renderField : Model -> Field -> String -> Float -> String -> SolveMethod -> Html Msg
@@ -266,40 +248,40 @@ update msg model =
                         newModel =
                             case field of
                                 WattsField ->
-                                    updateWatts model (Watts floatValue)
+                                    updatePower model (Watts floatValue)
 
                                 KilowattsField ->
-                                    updateWatts model (Kilowatts floatValue |> kilowattsToWatts)
+                                    updatePower model (floatToPower Kilo floatValue)
 
                                 MegawattsField ->
-                                    updateWatts model (Megawatts floatValue |> megawattsToWatts)
+                                    updatePower model (floatToPower Mega floatValue)
 
                                 GigawattsField ->
-                                    updateWatts model (Gigawatts floatValue |> gigawattsToWatts)
+                                    updatePower model (floatToPower Giga floatValue)
 
                                 WattHoursField ->
-                                    updateWattHours model (WattHours floatValue)
+                                    updateEnergy model (WattHours floatValue)
 
                                 KilowattHoursField ->
-                                    updateWattHours model (KilowattHours floatValue |> kilowattHoursToWattHours)
+                                    updateEnergy model (floatToEnergy Kilo floatValue)
 
                                 MegawattHoursField ->
-                                    updateWattHours model (MegawattHours floatValue |> megawattHoursToWattHours)
+                                    updateEnergy model (floatToEnergy Mega floatValue)
 
                                 GigawattHoursField ->
-                                    updateWattHours model (GigawattHours floatValue |> gigawattHoursToWattHours)
+                                    updateEnergy model (floatToEnergy Giga floatValue)
 
                                 SecondsField ->
-                                    updateSeconds model (Seconds floatValue)
+                                    updateDuration model (Seconds floatValue)
 
                                 MinutesField ->
-                                    updateSeconds model (Minutes floatValue |> minutesToSeconds)
+                                    updateDuration model (Minutes floatValue |> minutesToSeconds)
 
                                 HoursField ->
-                                    updateSeconds model (Hours floatValue |> hoursToSeconds)
+                                    updateDuration model (Hours floatValue |> hoursToSeconds)
 
                                 DaysField ->
-                                    updateSeconds model (Days floatValue |> daysToSeconds)
+                                    updateDuration model (Days floatValue |> daysToSeconds)
 
                                 NoActiveField ->
                                     model
@@ -313,67 +295,67 @@ update msg model =
             let
                 newModel =
                     case example of
-                        EnergyExample watts seconds ->
-                            { model | solveMethod = EnergySolve, watts = watts, seconds = seconds, wattHours = calculateEnergy watts seconds }
+                        EnergyExample power duration ->
+                            { model | solveMethod = EnergySolve, power = power, duration = duration, energy = calculateEnergy power duration }
 
-                        PowerExample wattHours seconds ->
-                            { model | solveMethod = PowerSolve, watts = calculatePower wattHours seconds, seconds = seconds, wattHours = wattHours }
+                        PowerExample energy duration ->
+                            { model | solveMethod = PowerSolve, power = calculatePower energy duration, duration = duration, energy = energy }
 
-                        TimeExample watts wattHours ->
-                            { model | solveMethod = TimeSolve, watts = watts, seconds = calculateTime watts wattHours, wattHours = wattHours }
+                        DurationExample power energy ->
+                            { model | solveMethod = DurationSolve, power = power, duration = calculateDuration power energy, energy = energy }
             in
             ( { newModel | formStatus = Valid, activeField = NoActiveField }, Cmd.none )
 
 
-updateWatts : Model -> Watts -> Model
-updateWatts model watts =
+updatePower : Model -> Watts -> Model
+updatePower model power =
     case model.solveMethod of
         EnergySolve ->
-            { model | watts = watts, wattHours = calculateEnergy watts model.seconds }
+            { model | power = power, energy = calculateEnergy power model.duration }
 
-        TimeSolve ->
-            { model | watts = watts, seconds = calculateTime watts model.wattHours }
+        DurationSolve ->
+            { model | power = power, duration = calculateDuration power model.energy }
 
         _ ->
             model
 
 
-updateWattHours : Model -> WattHours -> Model
-updateWattHours model wattHours =
+updateEnergy : Model -> WattHours -> Model
+updateEnergy model energy =
     case model.solveMethod of
         PowerSolve ->
-            { model | wattHours = wattHours, watts = calculatePower wattHours model.seconds }
+            { model | energy = energy, power = calculatePower energy model.duration }
 
-        TimeSolve ->
-            { model | wattHours = wattHours, seconds = calculateTime model.watts wattHours }
+        DurationSolve ->
+            { model | energy = energy, duration = calculateDuration model.power energy }
 
         _ ->
             model
 
 
-updateSeconds : Model -> Seconds -> Model
-updateSeconds model seconds =
+updateDuration : Model -> Seconds -> Model
+updateDuration model duration =
     case model.solveMethod of
         PowerSolve ->
-            { model | seconds = seconds, watts = calculatePower model.wattHours seconds }
+            { model | duration = duration, power = calculatePower model.energy duration }
 
         EnergySolve ->
-            { model | seconds = seconds, wattHours = calculateEnergy model.watts seconds }
+            { model | duration = duration, energy = calculateEnergy model.power duration }
 
         _ ->
             model
 
 
 calculatePower : WattHours -> Seconds -> Watts
-calculatePower (WattHours wattHoursValue) seconds =
-    Watts (wattHoursValue / (seconds |> secondsToHours |> hoursToFloat))
+calculatePower (WattHours wattHoursValue) duration =
+    Watts (wattHoursValue / (duration |> secondsToHours |> hoursToFloat))
 
 
-calculateTime : Watts -> WattHours -> Seconds
-calculateTime (Watts wattsFloat) (WattHours wattHoursFloat) =
+calculateDuration : Watts -> WattHours -> Seconds
+calculateDuration (Watts wattsFloat) (WattHours wattHoursFloat) =
     Seconds (wattHoursFloat / wattsFloat * 3600)
 
 
 calculateEnergy : Watts -> Seconds -> WattHours
-calculateEnergy (Watts wattsFloat) seconds =
-    WattHours (wattsFloat * (seconds |> secondsToHours |> hoursToFloat))
+calculateEnergy (Watts wattsFloat) duration =
+    WattHours (wattsFloat * (duration |> secondsToHours |> hoursToFloat))

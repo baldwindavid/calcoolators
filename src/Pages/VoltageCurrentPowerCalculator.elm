@@ -7,60 +7,19 @@ import UI exposing (cardBody, cardContainer, cardHeader, cardHeaderToggleButton,
 import Units.Electricity
     exposing
         ( Amps(..)
-        , Gigaamps(..)
-        , Gigavolts(..)
-        , Gigawatts(..)
-        , Kiloamps(..)
-        , Kilovolts(..)
-        , Kilowatts(..)
-        , Megaamps(..)
-        , Megavolts(..)
-        , Megawatts(..)
         , Volts(..)
         , Watts(..)
-        , ampsToFloat
-        , ampsToGigaamps
-        , ampsToKiloamps
-        , ampsToMegaamps
-        , formatAmps
-        , formatGigaamps
-        , formatGigavolts
-        , formatGigawatts
-        , formatKiloamps
-        , formatKilovolts
-        , formatKilowatts
-        , formatMegaamps
-        , formatMegavolts
-        , formatMegawatts
-        , formatVolts
-        , formatWatts
-        , gigaampsToAmps
-        , gigaampsToFloat
-        , gigavoltsToFloat
-        , gigavoltsToVolts
-        , gigawattsToFloat
-        , gigawattsToWatts
-        , kiloampsToAmps
-        , kiloampsToFloat
-        , kilovoltsToFloat
-        , kilovoltsToVolts
-        , kilowattsToFloat
-        , kilowattsToWatts
-        , megaampsToAmps
-        , megaampsToFloat
-        , megavoltsToFloat
-        , megavoltsToVolts
-        , megawattsToFloat
-        , megawattsToWatts
-        , voltsToFloat
-        , voltsToGigavolts
-        , voltsToKilovolts
-        , voltsToMegavolts
-        , wattsToFloat
-        , wattsToGigawatts
-        , wattsToKilowatts
-        , wattsToMegawatts
+        , currentToFloat
+        , floatToCurrent
+        , floatToPower
+        , floatToVoltage
+        , formatCurrent
+        , formatPower
+        , formatVoltage
+        , powerToFloat
+        , voltageToFloat
         )
+import Units.Metric exposing (Prefix(..))
 import Units.Number exposing (numberStringToFloat)
 
 
@@ -78,17 +37,6 @@ type Field
     | MegaampsField
     | GigaampsField
     | NoActiveField
-
-
-type alias Model =
-    { watts : Watts
-    , activeField : Field
-    , formStatus : CalculationResult
-    , typedValue : String
-    , volts : Volts
-    , amps : Amps
-    , solveMethod : SolveMethod
-    }
 
 
 type CalculationResult
@@ -109,24 +57,39 @@ type Example
 
 
 
+-- MODEL
+
+
+type alias Model =
+    { power : Watts
+    , voltage : Volts
+    , current : Amps
+    , activeField : Field
+    , formStatus : CalculationResult
+    , typedValue : String
+    , solveMethod : SolveMethod
+    }
+
+
+
 -- INIT
 
 
 init : { currentTime : Int } -> ( Model, Cmd Msg )
 init { currentTime } =
     let
-        volts =
+        voltage =
             Volts 30000
 
-        amps =
+        current =
             Amps 1000
     in
-    ( { watts = calculatePower volts amps
+    ( { power = calculatePower voltage current
       , activeField = NoActiveField
       , formStatus = Valid
       , typedValue = ""
-      , volts = volts
-      , amps = amps
+      , voltage = voltage
+      , current = current
       , solveMethod = PowerSolve
       }
     , Cmd.none
@@ -178,10 +141,10 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == VoltageSolve) "Solving for Voltage" "Solve for Voltage" (SetSolveMethod VoltageSolve)
                     ]
                 , cardBody
-                    [ renderField model VoltsField "Volts" (model.volts |> voltsToFloat) (model.volts |> formatVolts) VoltageSolve
-                    , renderField model KilovoltsField "Kilovolts" (model.volts |> voltsToKilovolts |> kilovoltsToFloat) (model.volts |> voltsToKilovolts |> formatKilovolts) VoltageSolve
-                    , renderField model MegavoltsField "Megavolts" (model.volts |> voltsToMegavolts |> megavoltsToFloat) (model.volts |> voltsToMegavolts |> formatMegavolts) VoltageSolve
-                    , renderField model GigavoltsField "Gigavolts" (model.volts |> voltsToGigavolts |> gigavoltsToFloat) (model.volts |> voltsToGigavolts |> formatGigavolts) VoltageSolve
+                    [ renderField model VoltsField model.voltage Base "Volts" voltageToFloat formatVoltage VoltageSolve
+                    , renderField model KilovoltsField model.voltage Kilo "Kilovolts" voltageToFloat formatVoltage VoltageSolve
+                    , renderField model MegavoltsField model.voltage Mega "Megavolts" voltageToFloat formatVoltage VoltageSolve
+                    , renderField model GigavoltsField model.voltage Giga "Gigavolts" voltageToFloat formatVoltage VoltageSolve
                     ]
                 ]
             , cardContainer
@@ -190,10 +153,10 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == CurrentSolve) "Solving for Current" "Solve for Current" (SetSolveMethod CurrentSolve)
                     ]
                 , cardBody
-                    [ renderField model AmpsField "Amps" (model.amps |> ampsToFloat) (model.amps |> formatAmps) CurrentSolve
-                    , renderField model KiloampsField "Kiloamps" (model.amps |> ampsToKiloamps |> kiloampsToFloat) (model.amps |> ampsToKiloamps |> formatKiloamps) CurrentSolve
-                    , renderField model MegaampsField "Megaamps" (model.amps |> ampsToMegaamps |> megaampsToFloat) (model.amps |> ampsToMegaamps |> formatMegaamps) CurrentSolve
-                    , renderField model GigaampsField "Gigaamps" (model.amps |> ampsToGigaamps |> gigaampsToFloat) (model.amps |> ampsToGigaamps |> formatGigaamps) CurrentSolve
+                    [ renderField model AmpsField model.current Base "Amps" currentToFloat formatCurrent CurrentSolve
+                    , renderField model KiloampsField model.current Kilo "Kiloamps" currentToFloat formatCurrent CurrentSolve
+                    , renderField model MegaampsField model.current Mega "Megaamps" currentToFloat formatCurrent CurrentSolve
+                    , renderField model GigaampsField model.current Giga "Gigaamps" currentToFloat formatCurrent CurrentSolve
                     ]
                 ]
             , cardContainer
@@ -202,10 +165,10 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == PowerSolve) "Solving for Power" "Solve for Power" (SetSolveMethod PowerSolve)
                     ]
                 , cardBody
-                    [ renderField model WattsField "Watt" (model.watts |> wattsToFloat) (model.watts |> formatWatts) PowerSolve
-                    , renderField model KilowattsField "Kilowatt" (model.watts |> wattsToKilowatts |> kilowattsToFloat) (model.watts |> wattsToKilowatts |> formatKilowatts) PowerSolve
-                    , renderField model MegawattsField "Megawatt" (model.watts |> wattsToMegawatts |> megawattsToFloat) (model.watts |> wattsToMegawatts |> formatMegawatts) PowerSolve
-                    , renderField model GigawattsField "Gigawatt" (model.watts |> wattsToGigawatts |> gigawattsToFloat) (model.watts |> wattsToGigawatts |> formatGigawatts) PowerSolve
+                    [ renderField model WattsField model.power Base "Watt" powerToFloat formatPower PowerSolve
+                    , renderField model KilowattsField model.power Kilo "Kilowatt" powerToFloat formatPower PowerSolve
+                    , renderField model MegawattsField model.power Mega "Megawatt" powerToFloat formatPower PowerSolve
+                    , renderField model GigawattsField model.power Giga "Gigawatt" powerToFloat formatPower PowerSolve
                     ]
                 ]
             ]
@@ -218,39 +181,24 @@ view model =
         ]
 
 
-calculateVoltage : Watts -> Amps -> Volts
-calculateVoltage (Watts wattsFloat) (Amps ampsValue) =
-    Volts (wattsFloat / ampsValue)
-
-
-calculateCurrent : Watts -> Volts -> Amps
-calculateCurrent (Watts wattsValue) (Volts voltsValue) =
-    Amps (wattsValue / voltsValue)
-
-
-calculatePower : Volts -> Amps -> Watts
-calculatePower (Volts voltsValue) (Amps ampsValue) =
-    Watts (voltsValue * ampsValue)
-
-
-renderField : Model -> Field -> String -> Float -> String -> SolveMethod -> Html Msg
-renderField model field label forInput forHint solveMethod =
+renderField : Model -> Field -> unit -> Prefix -> String -> (Prefix -> unit -> Float) -> (Prefix -> unit -> String) -> SolveMethod -> Html Msg
+renderField model field unit prefix label inputFn hintFn solveMethod =
     let
         ( value, errors, hint ) =
             case model.formStatus of
                 Valid ->
                     if model.activeField == field then
-                        ( model.typedValue, [], forHint )
+                        ( model.typedValue, [], hintFn prefix unit )
 
                     else
-                        ( String.fromFloat forInput, [], forHint )
+                        ( String.fromFloat (inputFn prefix unit), [], hintFn prefix unit )
 
                 Invalid errorMsg ->
                     if model.activeField == field then
                         ( model.typedValue, [ errorMsg ], "" )
 
                     else
-                        ( String.fromFloat forInput, [], forHint )
+                        ( String.fromFloat (inputFn prefix unit), [], hintFn prefix unit )
     in
     formControl label value errors hint (model.solveMethod == solveMethod) (UpdateField field)
 
@@ -263,45 +211,6 @@ type Msg
     = UpdateField Field String
     | SetSolveMethod SolveMethod
     | SetExample Example
-
-
-updateWatts : Model -> Watts -> Model
-updateWatts model watts =
-    case model.solveMethod of
-        VoltageSolve ->
-            { model | watts = watts, volts = calculateVoltage watts model.amps }
-
-        CurrentSolve ->
-            { model | watts = watts, amps = calculateCurrent watts model.volts }
-
-        _ ->
-            model
-
-
-updateVolts : Model -> Volts -> Model
-updateVolts model volts =
-    case model.solveMethod of
-        PowerSolve ->
-            { model | volts = volts, watts = calculatePower volts model.amps }
-
-        CurrentSolve ->
-            { model | volts = volts, amps = calculateCurrent model.watts volts }
-
-        _ ->
-            model
-
-
-updateAmps : Model -> Amps -> Model
-updateAmps model amps =
-    case model.solveMethod of
-        PowerSolve ->
-            { model | amps = amps, watts = calculatePower model.volts amps }
-
-        VoltageSolve ->
-            { model | amps = amps, volts = calculateVoltage model.watts amps }
-
-        _ ->
-            model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -317,40 +226,40 @@ update msg model =
                         newModel =
                             case field of
                                 WattsField ->
-                                    updateWatts model (Watts floatValue)
+                                    updatePower model (Watts floatValue)
 
                                 KilowattsField ->
-                                    updateWatts model (Kilowatts floatValue |> kilowattsToWatts)
+                                    updatePower model (floatToPower Kilo floatValue)
 
                                 MegawattsField ->
-                                    updateWatts model (Megawatts floatValue |> megawattsToWatts)
+                                    updatePower model (floatToPower Mega floatValue)
 
                                 GigawattsField ->
-                                    updateWatts model (Gigawatts floatValue |> gigawattsToWatts)
+                                    updatePower model (floatToPower Giga floatValue)
 
                                 VoltsField ->
-                                    updateVolts model (Volts floatValue)
+                                    updateVoltage model (Volts floatValue)
 
                                 KilovoltsField ->
-                                    updateVolts model (Kilovolts floatValue |> kilovoltsToVolts)
+                                    updateVoltage model (floatToVoltage Kilo floatValue)
 
                                 MegavoltsField ->
-                                    updateVolts model (Megavolts floatValue |> megavoltsToVolts)
+                                    updateVoltage model (floatToVoltage Mega floatValue)
 
                                 GigavoltsField ->
-                                    updateVolts model (Gigavolts floatValue |> gigavoltsToVolts)
+                                    updateVoltage model (floatToVoltage Giga floatValue)
 
                                 AmpsField ->
-                                    updateAmps model (Amps floatValue)
+                                    updateCurrent model (Amps floatValue)
 
                                 KiloampsField ->
-                                    updateAmps model (Kiloamps floatValue |> kiloampsToAmps)
+                                    updateCurrent model (floatToCurrent Kilo floatValue)
 
                                 MegaampsField ->
-                                    updateAmps model (Megaamps floatValue |> megaampsToAmps)
+                                    updateCurrent model (floatToCurrent Mega floatValue)
 
                                 GigaampsField ->
-                                    updateAmps model (Gigaamps floatValue |> gigaampsToAmps)
+                                    updateCurrent model (floatToCurrent Giga floatValue)
 
                                 NoActiveField ->
                                     model
@@ -364,13 +273,67 @@ update msg model =
             let
                 newModel =
                     case example of
-                        VoltageExample watts amps ->
-                            { model | solveMethod = VoltageSolve, watts = watts, amps = amps, volts = calculateVoltage watts amps }
+                        VoltageExample power current ->
+                            { model | solveMethod = VoltageSolve, power = power, current = current, voltage = calculateVoltage power current }
 
-                        CurrentExample watts volts ->
-                            { model | solveMethod = CurrentSolve, watts = watts, volts = volts, amps = calculateCurrent watts volts }
+                        CurrentExample power voltage ->
+                            { model | solveMethod = CurrentSolve, power = power, voltage = voltage, current = calculateCurrent power voltage }
 
-                        PowerExample volts amps ->
-                            { model | solveMethod = PowerSolve, volts = volts, amps = amps, watts = calculatePower volts amps }
+                        PowerExample voltage current ->
+                            { model | solveMethod = PowerSolve, voltage = voltage, current = current, power = calculatePower voltage current }
             in
             ( { newModel | formStatus = Valid, activeField = NoActiveField }, Cmd.none )
+
+
+updatePower : Model -> Watts -> Model
+updatePower model power =
+    case model.solveMethod of
+        VoltageSolve ->
+            { model | power = power, voltage = calculateVoltage power model.current }
+
+        CurrentSolve ->
+            { model | power = power, current = calculateCurrent power model.voltage }
+
+        _ ->
+            model
+
+
+updateVoltage : Model -> Volts -> Model
+updateVoltage model voltage =
+    case model.solveMethod of
+        PowerSolve ->
+            { model | voltage = voltage, power = calculatePower voltage model.current }
+
+        CurrentSolve ->
+            { model | voltage = voltage, current = calculateCurrent model.power voltage }
+
+        _ ->
+            model
+
+
+updateCurrent : Model -> Amps -> Model
+updateCurrent model current =
+    case model.solveMethod of
+        PowerSolve ->
+            { model | current = current, power = calculatePower model.voltage current }
+
+        VoltageSolve ->
+            { model | current = current, voltage = calculateVoltage model.power current }
+
+        _ ->
+            model
+
+
+calculateVoltage : Watts -> Amps -> Volts
+calculateVoltage (Watts wattsFloat) (Amps ampsValue) =
+    Volts (wattsFloat / ampsValue)
+
+
+calculateCurrent : Watts -> Volts -> Amps
+calculateCurrent (Watts wattsValue) (Volts voltsValue) =
+    Amps (wattsValue / voltsValue)
+
+
+calculatePower : Volts -> Amps -> Watts
+calculatePower (Volts voltsValue) (Amps ampsValue) =
+    Watts (voltsValue * ampsValue)

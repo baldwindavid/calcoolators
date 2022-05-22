@@ -5226,9 +5226,7 @@ var $author$project$Main$VoltageCurrentPowerCalculatorMsg = function (a) {
 	return {$: 'VoltageCurrentPowerCalculatorMsg', a: a};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$Units$Electricity$KilowattHourCost = function (a) {
-	return {$: 'KilowattHourCost', a: a};
-};
+var $author$project$Units$Metric$Kilo = {$: 'Kilo'};
 var $author$project$Pages$EnergyCostCalculator$NoActiveField = {$: 'NoActiveField'};
 var $author$project$Pages$EnergyCostCalculator$TotalCostSolve = {$: 'TotalCostSolve'};
 var $author$project$Pages$EnergyCostCalculator$Valid = {$: 'Valid'};
@@ -5244,32 +5242,55 @@ var $author$project$Pages$EnergyCostCalculator$calculateTotalCost = F2(
 		var wattHourCostFloat = _v1.a;
 		return $author$project$Units$Currency$Currency(wattHoursFloat * wattHourCostFloat);
 	});
+var $author$project$Units$Metric$ASC = {$: 'ASC'};
+var $author$project$Units$Metric$Base = {$: 'Base'};
 var $author$project$Units$Electricity$WattHourCost = function (a) {
 	return {$: 'WattHourCost', a: a};
 };
-var $author$project$Units$Metric$baseToKilo = function (value) {
-	return value / 1000;
+var $author$project$Units$Metric$prefixToFactor = function (prefix) {
+	switch (prefix.$) {
+		case 'Base':
+			return 1;
+		case 'Kilo':
+			return 1000;
+		case 'Mega':
+			return 1000000;
+		default:
+			return 1000000000;
+	}
 };
-var $author$project$Units$Electricity$kilowattHourCostToWattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHourCost(
-		$author$project$Units$Metric$baseToKilo(value));
-};
+var $author$project$Units$Metric$convertPrefix = F4(
+	function (direction, value, oldPrefix, newPrefix) {
+		var oldFactor = $author$project$Units$Metric$prefixToFactor(oldPrefix);
+		var newFactor = $author$project$Units$Metric$prefixToFactor(newPrefix);
+		var multiplier = function () {
+			if (direction.$ === 'ASC') {
+				return newFactor / oldFactor;
+			} else {
+				return oldFactor / newFactor;
+			}
+		}();
+		return value * multiplier;
+	});
+var $author$project$Units$Electricity$floatToEnergyCost = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$WattHourCost(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$ASC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Pages$EnergyCostCalculator$init = function (_v0) {
 	var currentTime = _v0.currentTime;
-	var wattHours = $author$project$Units$Electricity$WattHours(30000);
-	var wattHourCost = $author$project$Units$Electricity$kilowattHourCostToWattHourCost(
-		$author$project$Units$Electricity$KilowattHourCost(0.12));
+	var energyCost = A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Kilo, 0.12);
+	var energy = $author$project$Units$Electricity$WattHours(30000);
 	return _Utils_Tuple2(
 		{
 			activeField: $author$project$Pages$EnergyCostCalculator$NoActiveField,
+			energy: energy,
+			energyCost: energyCost,
 			formStatus: $author$project$Pages$EnergyCostCalculator$Valid,
 			solveMethod: $author$project$Pages$EnergyCostCalculator$TotalCostSolve,
-			totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, wattHours, wattHourCost),
-			typedValue: '',
-			wattHourCost: wattHourCost,
-			wattHours: wattHours
+			totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, energy, energyCost),
+			typedValue: ''
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -5284,17 +5305,17 @@ var $author$project$Units$Electricity$Watts = function (a) {
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$init = function (_v0) {
 	var currentTime = _v0.currentTime;
-	var watts = $author$project$Units$Electricity$Watts(30000);
-	var wattHours = $author$project$Units$Electricity$WattHours(30000);
+	var power = $author$project$Units$Electricity$Watts(30000);
+	var energy = $author$project$Units$Electricity$WattHours(30000);
 	return _Utils_Tuple2(
 		{
 			activeField: $author$project$Pages$PowerTimeEnergyCalculator$NoActiveField,
+			duration: $author$project$Units$Time$Seconds(60 * 60),
+			energy: energy,
 			formStatus: $author$project$Pages$PowerTimeEnergyCalculator$Valid,
-			seconds: $author$project$Units$Time$Seconds(60 * 60),
+			power: power,
 			solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve,
-			typedValue: '',
-			wattHours: wattHours,
-			watts: watts
+			typedValue: ''
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -5315,17 +5336,17 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$calculatePower = F2(
 	});
 var $author$project$Pages$VoltageCurrentPowerCalculator$init = function (_v0) {
 	var currentTime = _v0.currentTime;
-	var volts = $author$project$Units$Electricity$Volts(30000);
-	var amps = $author$project$Units$Electricity$Amps(1000);
+	var voltage = $author$project$Units$Electricity$Volts(30000);
+	var current = $author$project$Units$Electricity$Amps(1000);
 	return _Utils_Tuple2(
 		{
 			activeField: $author$project$Pages$VoltageCurrentPowerCalculator$NoActiveField,
-			amps: amps,
+			current: current,
 			formStatus: $author$project$Pages$VoltageCurrentPowerCalculator$Valid,
+			power: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, voltage, current),
 			solveMethod: $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve,
 			typedValue: '',
-			volts: volts,
-			watts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, volts, amps)
+			voltage: voltage
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -6199,29 +6220,16 @@ var $elm$url$Url$toString = function (url) {
 };
 var $author$project$Pages$EnergyCostCalculator$EnergyCostSolve = {$: 'EnergyCostSolve'};
 var $author$project$Pages$EnergyCostCalculator$EnergySolve = {$: 'EnergySolve'};
-var $author$project$Units$Electricity$GigawattHourCost = function (a) {
-	return {$: 'GigawattHourCost', a: a};
-};
-var $author$project$Units$Electricity$GigawattHours = function (a) {
-	return {$: 'GigawattHours', a: a};
-};
+var $author$project$Units$Metric$Giga = {$: 'Giga'};
 var $author$project$Pages$EnergyCostCalculator$Invalid = function (a) {
 	return {$: 'Invalid', a: a};
 };
-var $author$project$Units$Electricity$KilowattHours = function (a) {
-	return {$: 'KilowattHours', a: a};
-};
-var $author$project$Units$Electricity$MegawattHourCost = function (a) {
-	return {$: 'MegawattHourCost', a: a};
-};
-var $author$project$Units$Electricity$MegawattHours = function (a) {
-	return {$: 'MegawattHours', a: a};
-};
+var $author$project$Units$Metric$Mega = {$: 'Mega'};
 var $author$project$Pages$EnergyCostCalculator$calculateEnergy = F2(
 	function (_v0, _v1) {
 		var totalCost = _v0.a;
-		var wattHourCost = _v1.a;
-		return $author$project$Units$Electricity$WattHours(totalCost / wattHourCost);
+		var energyCost = _v1.a;
+		return $author$project$Units$Electricity$WattHours(totalCost / energyCost);
 	});
 var $author$project$Pages$EnergyCostCalculator$calculateWattHourCost = F2(
 	function (_v0, _v1) {
@@ -6229,46 +6237,12 @@ var $author$project$Pages$EnergyCostCalculator$calculateWattHourCost = F2(
 		var wattHoursFloat = _v1.a;
 		return $author$project$Units$Electricity$WattHourCost(totalCostFloat / wattHoursFloat);
 	});
-var $author$project$Units$Metric$baseToGiga = function (value) {
-	return value / 1000000000;
-};
-var $author$project$Units$Electricity$gigawattHourCostToWattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHourCost(
-		$author$project$Units$Metric$baseToGiga(value));
-};
-var $author$project$Units$Metric$gigaToBase = function (value) {
-	return value * 1000000000;
-};
-var $author$project$Units$Electricity$gigawattHoursToWattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHours(
-		$author$project$Units$Metric$gigaToBase(value));
-};
-var $author$project$Units$Metric$kiloToBase = function (value) {
-	return value * 1000;
-};
-var $author$project$Units$Electricity$kilowattHoursToWattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHours(
-		$author$project$Units$Metric$kiloToBase(value));
-};
-var $author$project$Units$Metric$baseToMega = function (value) {
-	return value / 1000000;
-};
-var $author$project$Units$Electricity$megawattHourCostToWattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHourCost(
-		$author$project$Units$Metric$baseToMega(value));
-};
-var $author$project$Units$Metric$megaToBase = function (value) {
-	return value * 1000000;
-};
-var $author$project$Units$Electricity$megawattHoursToWattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$WattHours(
-		$author$project$Units$Metric$megaToBase(value));
-};
+var $author$project$Units$Metric$DESC = {$: 'DESC'};
+var $author$project$Units$Electricity$floatToEnergy = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$WattHours(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
 var $elm$core$String$replace = F3(
 	function (before, after, string) {
 		return A2(
@@ -6289,59 +6263,59 @@ var $author$project$Pages$EnergyCostCalculator$updateTotalCost = F2(
 				return _Utils_update(
 					model,
 					{
-						totalCost: totalCost,
-						wattHours: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, totalCost, model.wattHourCost)
+						energy: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, totalCost, model.energyCost),
+						totalCost: totalCost
 					});
 			case 'EnergyCostSolve':
 				return _Utils_update(
 					model,
 					{
-						totalCost: totalCost,
-						wattHourCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, totalCost, model.wattHours)
+						energyCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, totalCost, model.energy),
+						totalCost: totalCost
 					});
 			default:
 				return model;
 		}
 	});
 var $author$project$Pages$EnergyCostCalculator$updateWattHourCost = F2(
-	function (model, wattHourCost) {
+	function (model, energyCost) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'EnergySolve':
 				return _Utils_update(
 					model,
 					{
-						wattHourCost: wattHourCost,
-						wattHours: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, model.totalCost, wattHourCost)
+						energy: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, model.totalCost, energyCost),
+						energyCost: energyCost
 					});
 			case 'TotalCostSolve':
 				return _Utils_update(
 					model,
 					{
-						totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, model.wattHours, wattHourCost),
-						wattHourCost: wattHourCost
+						energyCost: energyCost,
+						totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, model.energy, energyCost)
 					});
 			default:
 				return model;
 		}
 	});
 var $author$project$Pages$EnergyCostCalculator$updateWattHours = F2(
-	function (model, wattHours) {
+	function (model, energy) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'EnergyCostSolve':
 				return _Utils_update(
 					model,
 					{
-						wattHourCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, model.totalCost, wattHours),
-						wattHours: wattHours
+						energy: energy,
+						energyCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, model.totalCost, energy)
 					});
 			case 'TotalCostSolve':
 				return _Utils_update(
 					model,
 					{
-						totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, wattHours, model.wattHourCost),
-						wattHours: wattHours
+						energy: energy,
+						totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, energy, model.energyCost)
 					});
 			default:
 				return model;
@@ -6374,20 +6348,17 @@ var $author$project$Pages$EnergyCostCalculator$update = F2(
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHours,
 									model,
-									$author$project$Units$Electricity$kilowattHoursToWattHours(
-										$author$project$Units$Electricity$KilowattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegawattHoursField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHours,
 									model,
-									$author$project$Units$Electricity$megawattHoursToWattHours(
-										$author$project$Units$Electricity$MegawattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigawattHoursField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHours,
 									model,
-									$author$project$Units$Electricity$gigawattHoursToWattHours(
-										$author$project$Units$Electricity$GigawattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Giga, floatValue));
 							case 'WattHourCostField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHourCost,
@@ -6397,20 +6368,17 @@ var $author$project$Pages$EnergyCostCalculator$update = F2(
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHourCost,
 									model,
-									$author$project$Units$Electricity$kilowattHourCostToWattHourCost(
-										$author$project$Units$Electricity$KilowattHourCost(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegawattHourCostField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHourCost,
 									model,
-									$author$project$Units$Electricity$megawattHourCostToWattHourCost(
-										$author$project$Units$Electricity$MegawattHourCost(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigawattHourCostField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateWattHourCost,
 									model,
-									$author$project$Units$Electricity$gigawattHourCostToWattHourCost(
-										$author$project$Units$Electricity$GigawattHourCost(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Giga, floatValue));
 							case 'TotalCostField':
 								return A2(
 									$author$project$Pages$EnergyCostCalculator$updateTotalCost,
@@ -6442,36 +6410,36 @@ var $author$project$Pages$EnergyCostCalculator$update = F2(
 					switch (example.$) {
 						case 'EnergyExample':
 							var totalCost = example.a;
-							var wattHourCost = example.b;
+							var energyCost = example.b;
 							return _Utils_update(
 								model,
 								{
+									energy: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, totalCost, energyCost),
+									energyCost: energyCost,
 									solveMethod: $author$project$Pages$EnergyCostCalculator$EnergySolve,
-									totalCost: totalCost,
-									wattHourCost: wattHourCost,
-									wattHours: A2($author$project$Pages$EnergyCostCalculator$calculateEnergy, totalCost, wattHourCost)
+									totalCost: totalCost
 								});
 						case 'WattHourCostExample':
 							var totalCost = example.a;
-							var wattHours = example.b;
+							var energy = example.b;
 							return _Utils_update(
 								model,
 								{
+									energy: energy,
+									energyCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, totalCost, energy),
 									solveMethod: $author$project$Pages$EnergyCostCalculator$EnergyCostSolve,
-									totalCost: totalCost,
-									wattHourCost: A2($author$project$Pages$EnergyCostCalculator$calculateWattHourCost, totalCost, wattHours),
-									wattHours: wattHours
+									totalCost: totalCost
 								});
 						default:
-							var wattHours = example.a;
-							var wattHourCost = example.b;
+							var energy = example.a;
+							var energyCost = example.b;
 							return _Utils_update(
 								model,
 								{
+									energy: energy,
+									energyCost: energyCost,
 									solveMethod: $author$project$Pages$EnergyCostCalculator$TotalCostSolve,
-									totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, wattHours, wattHourCost),
-									wattHourCost: wattHourCost,
-									wattHours: wattHours
+									totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, energy, energyCost)
 								});
 					}
 				}();
@@ -6485,26 +6453,23 @@ var $author$project$Pages$EnergyCostCalculator$update = F2(
 var $author$project$Units$Time$Days = function (a) {
 	return {$: 'Days', a: a};
 };
-var $author$project$Units$Electricity$Gigawatts = function (a) {
-	return {$: 'Gigawatts', a: a};
-};
+var $author$project$Pages$PowerTimeEnergyCalculator$DurationSolve = {$: 'DurationSolve'};
 var $author$project$Units$Time$Hours = function (a) {
 	return {$: 'Hours', a: a};
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$Invalid = function (a) {
 	return {$: 'Invalid', a: a};
 };
-var $author$project$Units$Electricity$Kilowatts = function (a) {
-	return {$: 'Kilowatts', a: a};
-};
-var $author$project$Units$Electricity$Megawatts = function (a) {
-	return {$: 'Megawatts', a: a};
-};
 var $author$project$Units$Time$Minutes = function (a) {
 	return {$: 'Minutes', a: a};
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve = {$: 'PowerSolve'};
-var $author$project$Pages$PowerTimeEnergyCalculator$TimeSolve = {$: 'TimeSolve'};
+var $author$project$Pages$PowerTimeEnergyCalculator$calculateDuration = F2(
+	function (_v0, _v1) {
+		var wattsFloat = _v0.a;
+		var wattHoursFloat = _v1.a;
+		return $author$project$Units$Time$Seconds((wattHoursFloat / wattsFloat) * 3600);
+	});
 var $author$project$Units$Time$hoursToFloat = function (_v0) {
 	var value = _v0.a;
 	return value;
@@ -6514,113 +6479,97 @@ var $author$project$Units$Time$secondsToHours = function (_v0) {
 	return $author$project$Units$Time$Hours((value / 60) / 60);
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy = F2(
-	function (_v0, seconds) {
+	function (_v0, duration) {
 		var wattsFloat = _v0.a;
 		return $author$project$Units$Electricity$WattHours(
 			wattsFloat * $author$project$Units$Time$hoursToFloat(
-				$author$project$Units$Time$secondsToHours(seconds)));
+				$author$project$Units$Time$secondsToHours(duration)));
 	});
 var $author$project$Pages$PowerTimeEnergyCalculator$calculatePower = F2(
-	function (_v0, seconds) {
+	function (_v0, duration) {
 		var wattHoursValue = _v0.a;
 		return $author$project$Units$Electricity$Watts(
 			wattHoursValue / $author$project$Units$Time$hoursToFloat(
-				$author$project$Units$Time$secondsToHours(seconds)));
-	});
-var $author$project$Pages$PowerTimeEnergyCalculator$calculateTime = F2(
-	function (_v0, _v1) {
-		var wattsFloat = _v0.a;
-		var wattHoursFloat = _v1.a;
-		return $author$project$Units$Time$Seconds((wattHoursFloat / wattsFloat) * 3600);
+				$author$project$Units$Time$secondsToHours(duration)));
 	});
 var $author$project$Units$Time$daysToSeconds = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Time$Seconds(((value * 24) * 60) * 60);
 };
-var $author$project$Units$Electricity$gigawattsToWatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Watts(
-		$author$project$Units$Metric$gigaToBase(value));
-};
+var $author$project$Units$Electricity$floatToPower = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$Watts(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
 var $author$project$Units$Time$hoursToSeconds = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Time$Seconds((value * 60) * 60);
-};
-var $author$project$Units$Electricity$kilowattsToWatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Watts(
-		$author$project$Units$Metric$kiloToBase(value));
-};
-var $author$project$Units$Electricity$megawattsToWatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Watts(
-		$author$project$Units$Metric$megaToBase(value));
 };
 var $author$project$Units$Time$minutesToSeconds = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Time$Seconds(value * 60);
 };
-var $author$project$Pages$PowerTimeEnergyCalculator$updateSeconds = F2(
-	function (model, seconds) {
+var $author$project$Pages$PowerTimeEnergyCalculator$updateDuration = F2(
+	function (model, duration) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'PowerSolve':
 				return _Utils_update(
 					model,
 					{
-						seconds: seconds,
-						watts: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, model.wattHours, seconds)
+						duration: duration,
+						power: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, model.energy, duration)
 					});
 			case 'EnergySolve':
 				return _Utils_update(
 					model,
 					{
-						seconds: seconds,
-						wattHours: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, model.watts, seconds)
+						duration: duration,
+						energy: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, model.power, duration)
 					});
 			default:
 				return model;
 		}
 	});
-var $author$project$Pages$PowerTimeEnergyCalculator$updateWattHours = F2(
-	function (model, wattHours) {
+var $author$project$Pages$PowerTimeEnergyCalculator$updateEnergy = F2(
+	function (model, energy) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'PowerSolve':
 				return _Utils_update(
 					model,
 					{
-						wattHours: wattHours,
-						watts: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, wattHours, model.seconds)
+						energy: energy,
+						power: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, energy, model.duration)
 					});
-			case 'TimeSolve':
+			case 'DurationSolve':
 				return _Utils_update(
 					model,
 					{
-						seconds: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateTime, model.watts, wattHours),
-						wattHours: wattHours
+						duration: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateDuration, model.power, energy),
+						energy: energy
 					});
 			default:
 				return model;
 		}
 	});
-var $author$project$Pages$PowerTimeEnergyCalculator$updateWatts = F2(
-	function (model, watts) {
+var $author$project$Pages$PowerTimeEnergyCalculator$updatePower = F2(
+	function (model, power) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'EnergySolve':
 				return _Utils_update(
 					model,
 					{
-						wattHours: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, watts, model.seconds),
-						watts: watts
+						energy: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, power, model.duration),
+						power: power
 					});
-			case 'TimeSolve':
+			case 'DurationSolve':
 				return _Utils_update(
 					model,
 					{
-						seconds: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateTime, watts, model.wattHours),
-						watts: watts
+						duration: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateDuration, power, model.energy),
+						power: power
 					});
 			default:
 				return model;
@@ -6646,70 +6595,64 @@ var $author$project$Pages$PowerTimeEnergyCalculator$update = F2(
 						switch (field.$) {
 							case 'WattsField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWatts,
+									$author$project$Pages$PowerTimeEnergyCalculator$updatePower,
 									model,
 									$author$project$Units$Electricity$Watts(floatValue));
 							case 'KilowattsField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWatts,
+									$author$project$Pages$PowerTimeEnergyCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$kilowattsToWatts(
-										$author$project$Units$Electricity$Kilowatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegawattsField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWatts,
+									$author$project$Pages$PowerTimeEnergyCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$megawattsToWatts(
-										$author$project$Units$Electricity$Megawatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigawattsField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWatts,
+									$author$project$Pages$PowerTimeEnergyCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$gigawattsToWatts(
-										$author$project$Units$Electricity$Gigawatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Giga, floatValue));
 							case 'WattHoursField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWattHours,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateEnergy,
 									model,
 									$author$project$Units$Electricity$WattHours(floatValue));
 							case 'KilowattHoursField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWattHours,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateEnergy,
 									model,
-									$author$project$Units$Electricity$kilowattHoursToWattHours(
-										$author$project$Units$Electricity$KilowattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegawattHoursField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWattHours,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateEnergy,
 									model,
-									$author$project$Units$Electricity$megawattHoursToWattHours(
-										$author$project$Units$Electricity$MegawattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigawattHoursField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateWattHours,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateEnergy,
 									model,
-									$author$project$Units$Electricity$gigawattHoursToWattHours(
-										$author$project$Units$Electricity$GigawattHours(floatValue)));
+									A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Giga, floatValue));
 							case 'SecondsField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateSeconds,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateDuration,
 									model,
 									$author$project$Units$Time$Seconds(floatValue));
 							case 'MinutesField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateSeconds,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateDuration,
 									model,
 									$author$project$Units$Time$minutesToSeconds(
 										$author$project$Units$Time$Minutes(floatValue)));
 							case 'HoursField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateSeconds,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateDuration,
 									model,
 									$author$project$Units$Time$hoursToSeconds(
 										$author$project$Units$Time$Hours(floatValue)));
 							case 'DaysField':
 								return A2(
-									$author$project$Pages$PowerTimeEnergyCalculator$updateSeconds,
+									$author$project$Pages$PowerTimeEnergyCalculator$updateDuration,
 									model,
 									$author$project$Units$Time$daysToSeconds(
 										$author$project$Units$Time$Days(floatValue)));
@@ -6738,37 +6681,37 @@ var $author$project$Pages$PowerTimeEnergyCalculator$update = F2(
 				var newModel = function () {
 					switch (example.$) {
 						case 'EnergyExample':
-							var watts = example.a;
-							var seconds = example.b;
+							var power = example.a;
+							var duration = example.b;
 							return _Utils_update(
 								model,
 								{
-									seconds: seconds,
-									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve,
-									wattHours: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, watts, seconds),
-									watts: watts
+									duration: duration,
+									energy: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy, power, duration),
+									power: power,
+									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve
 								});
 						case 'PowerExample':
-							var wattHours = example.a;
-							var seconds = example.b;
+							var energy = example.a;
+							var duration = example.b;
 							return _Utils_update(
 								model,
 								{
-									seconds: seconds,
-									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve,
-									wattHours: wattHours,
-									watts: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, wattHours, seconds)
+									duration: duration,
+									energy: energy,
+									power: A2($author$project$Pages$PowerTimeEnergyCalculator$calculatePower, energy, duration),
+									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve
 								});
 						default:
-							var watts = example.a;
-							var wattHours = example.b;
+							var power = example.a;
+							var energy = example.b;
 							return _Utils_update(
 								model,
 								{
-									seconds: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateTime, watts, wattHours),
-									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$TimeSolve,
-									wattHours: wattHours,
-									watts: watts
+									duration: A2($author$project$Pages$PowerTimeEnergyCalculator$calculateDuration, power, energy),
+									energy: energy,
+									power: power,
+									solveMethod: $author$project$Pages$PowerTimeEnergyCalculator$DurationSolve
 								});
 					}
 				}();
@@ -6780,26 +6723,8 @@ var $author$project$Pages$PowerTimeEnergyCalculator$update = F2(
 		}
 	});
 var $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve = {$: 'CurrentSolve'};
-var $author$project$Units$Electricity$Gigaamps = function (a) {
-	return {$: 'Gigaamps', a: a};
-};
-var $author$project$Units$Electricity$Gigavolts = function (a) {
-	return {$: 'Gigavolts', a: a};
-};
 var $author$project$Pages$VoltageCurrentPowerCalculator$Invalid = function (a) {
 	return {$: 'Invalid', a: a};
-};
-var $author$project$Units$Electricity$Kiloamps = function (a) {
-	return {$: 'Kiloamps', a: a};
-};
-var $author$project$Units$Electricity$Kilovolts = function (a) {
-	return {$: 'Kilovolts', a: a};
-};
-var $author$project$Units$Electricity$Megaamps = function (a) {
-	return {$: 'Megaamps', a: a};
-};
-var $author$project$Units$Electricity$Megavolts = function (a) {
-	return {$: 'Megavolts', a: a};
 };
 var $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve = {$: 'VoltageSolve'};
 var $author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent = F2(
@@ -6814,97 +6739,77 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage = F2(
 		var ampsValue = _v1.a;
 		return $author$project$Units$Electricity$Volts(wattsFloat / ampsValue);
 	});
-var $author$project$Units$Electricity$gigaampsToAmps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Amps(
-		$author$project$Units$Metric$gigaToBase(value));
-};
-var $author$project$Units$Electricity$gigavoltsToVolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Volts(
-		$author$project$Units$Metric$gigaToBase(value));
-};
-var $author$project$Units$Electricity$kiloampsToAmps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Amps(
-		$author$project$Units$Metric$kiloToBase(value));
-};
-var $author$project$Units$Electricity$kilovoltsToVolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Volts(
-		$author$project$Units$Metric$kiloToBase(value));
-};
-var $author$project$Units$Electricity$megaampsToAmps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Amps(
-		$author$project$Units$Metric$megaToBase(value));
-};
-var $author$project$Units$Electricity$megavoltsToVolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Volts(
-		$author$project$Units$Metric$megaToBase(value));
-};
-var $author$project$Pages$VoltageCurrentPowerCalculator$updateAmps = F2(
-	function (model, amps) {
+var $author$project$Units$Electricity$floatToCurrent = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$Amps(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
+var $author$project$Units$Electricity$floatToVoltage = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$Volts(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
+var $author$project$Pages$VoltageCurrentPowerCalculator$updateCurrent = F2(
+	function (model, current) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'PowerSolve':
 				return _Utils_update(
 					model,
 					{
-						amps: amps,
-						watts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, model.volts, amps)
+						current: current,
+						power: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, model.voltage, current)
 					});
 			case 'VoltageSolve':
 				return _Utils_update(
 					model,
 					{
-						amps: amps,
-						volts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, model.watts, amps)
+						current: current,
+						voltage: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, model.power, current)
 					});
 			default:
 				return model;
 		}
 	});
-var $author$project$Pages$VoltageCurrentPowerCalculator$updateVolts = F2(
-	function (model, volts) {
+var $author$project$Pages$VoltageCurrentPowerCalculator$updatePower = F2(
+	function (model, power) {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'VoltageSolve':
+				return _Utils_update(
+					model,
+					{
+						power: power,
+						voltage: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, power, model.current)
+					});
+			case 'CurrentSolve':
+				return _Utils_update(
+					model,
+					{
+						current: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, power, model.voltage),
+						power: power
+					});
+			default:
+				return model;
+		}
+	});
+var $author$project$Pages$VoltageCurrentPowerCalculator$updateVoltage = F2(
+	function (model, voltage) {
 		var _v0 = model.solveMethod;
 		switch (_v0.$) {
 			case 'PowerSolve':
 				return _Utils_update(
 					model,
 					{
-						volts: volts,
-						watts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, volts, model.amps)
+						power: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, voltage, model.current),
+						voltage: voltage
 					});
 			case 'CurrentSolve':
 				return _Utils_update(
 					model,
 					{
-						amps: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, model.watts, volts),
-						volts: volts
-					});
-			default:
-				return model;
-		}
-	});
-var $author$project$Pages$VoltageCurrentPowerCalculator$updateWatts = F2(
-	function (model, watts) {
-		var _v0 = model.solveMethod;
-		switch (_v0.$) {
-			case 'VoltageSolve':
-				return _Utils_update(
-					model,
-					{
-						volts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, watts, model.amps),
-						watts: watts
-					});
-			case 'CurrentSolve':
-				return _Utils_update(
-					model,
-					{
-						amps: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, watts, model.volts),
-						watts: watts
+						current: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, model.power, voltage),
+						voltage: voltage
 					});
 			default:
 				return model;
@@ -6930,73 +6835,64 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$update = F2(
 						switch (field.$) {
 							case 'WattsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateWatts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updatePower,
 									model,
 									$author$project$Units$Electricity$Watts(floatValue));
 							case 'KilowattsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateWatts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$kilowattsToWatts(
-										$author$project$Units$Electricity$Kilowatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegawattsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateWatts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$megawattsToWatts(
-										$author$project$Units$Electricity$Megawatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigawattsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateWatts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updatePower,
 									model,
-									$author$project$Units$Electricity$gigawattsToWatts(
-										$author$project$Units$Electricity$Gigawatts(floatValue)));
+									A2($author$project$Units$Electricity$floatToPower, $author$project$Units$Metric$Giga, floatValue));
 							case 'VoltsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateVolts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateVoltage,
 									model,
 									$author$project$Units$Electricity$Volts(floatValue));
 							case 'KilovoltsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateVolts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateVoltage,
 									model,
-									$author$project$Units$Electricity$kilovoltsToVolts(
-										$author$project$Units$Electricity$Kilovolts(floatValue)));
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegavoltsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateVolts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateVoltage,
 									model,
-									$author$project$Units$Electricity$megavoltsToVolts(
-										$author$project$Units$Electricity$Megavolts(floatValue)));
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigavoltsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateVolts,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateVoltage,
 									model,
-									$author$project$Units$Electricity$gigavoltsToVolts(
-										$author$project$Units$Electricity$Gigavolts(floatValue)));
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Giga, floatValue));
 							case 'AmpsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateAmps,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateCurrent,
 									model,
 									$author$project$Units$Electricity$Amps(floatValue));
 							case 'KiloampsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateAmps,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateCurrent,
 									model,
-									$author$project$Units$Electricity$kiloampsToAmps(
-										$author$project$Units$Electricity$Kiloamps(floatValue)));
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Kilo, floatValue));
 							case 'MegaampsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateAmps,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateCurrent,
 									model,
-									$author$project$Units$Electricity$megaampsToAmps(
-										$author$project$Units$Electricity$Megaamps(floatValue)));
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Mega, floatValue));
 							case 'GigaampsField':
 								return A2(
-									$author$project$Pages$VoltageCurrentPowerCalculator$updateAmps,
+									$author$project$Pages$VoltageCurrentPowerCalculator$updateCurrent,
 									model,
-									$author$project$Units$Electricity$gigaampsToAmps(
-										$author$project$Units$Electricity$Gigaamps(floatValue)));
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Giga, floatValue));
 							default:
 								return model;
 						}
@@ -7022,37 +6918,37 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$update = F2(
 				var newModel = function () {
 					switch (example.$) {
 						case 'VoltageExample':
-							var watts = example.a;
-							var amps = example.b;
+							var power = example.a;
+							var current = example.b;
 							return _Utils_update(
 								model,
 								{
-									amps: amps,
+									current: current,
+									power: power,
 									solveMethod: $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve,
-									volts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, watts, amps),
-									watts: watts
+									voltage: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage, power, current)
 								});
 						case 'CurrentExample':
-							var watts = example.a;
-							var volts = example.b;
+							var power = example.a;
+							var voltage = example.b;
 							return _Utils_update(
 								model,
 								{
-									amps: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, watts, volts),
+									current: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent, power, voltage),
+									power: power,
 									solveMethod: $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve,
-									volts: volts,
-									watts: watts
+									voltage: voltage
 								});
 						default:
-							var volts = example.a;
-							var amps = example.b;
+							var voltage = example.a;
+							var current = example.b;
 							return _Utils_update(
 								model,
 								{
-									amps: amps,
+									current: current,
+									power: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, voltage, current),
 									solveMethod: $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve,
-									volts: volts,
-									watts: A2($author$project$Pages$VoltageCurrentPowerCalculator$calculatePower, volts, amps)
+									voltage: voltage
 								});
 					}
 				}();
@@ -7338,6 +7234,16 @@ var $author$project$Units$Currency$currencyToFloat = function (_v0) {
 	var value = _v0.a;
 	return value;
 };
+var $author$project$Units$Electricity$energyCostToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$ASC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$energyToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
 var $cuducos$elm_format_number$FormatNumber$Locales$Min = function (a) {
 	return {$: 'Min', a: a};
 };
@@ -7867,14 +7773,6 @@ var $author$project$Units$Currency$formatCurrency = function (currency) {
 	return $author$project$Units$Currency$formatFloatAsCurrency(
 		$author$project$Units$Currency$currencyToFloat(currency));
 };
-var $author$project$Units$Electricity$gigawattHourCostToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatGigawattHourCost = function (gigawattHourCost) {
-	return $author$project$Units$Currency$formatFloatAsCurrency(
-		$author$project$Units$Electricity$gigawattHourCostToFloat(gigawattHourCost)) + '/gWh';
-};
 var $cuducos$elm_format_number$FormatNumber$Locales$Max = function (a) {
 	return {$: 'Max', a: a};
 };
@@ -7888,62 +7786,28 @@ var $author$project$Units$Number$formatFloat = function (value) {
 			}),
 		value);
 };
-var $author$project$Units$Electricity$gigawattHoursToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
+var $author$project$Units$Metric$prefixToLabel = function (prefix) {
+	switch (prefix.$) {
+		case 'Base':
+			return '';
+		case 'Kilo':
+			return 'k';
+		case 'Mega':
+			return 'm';
+		default:
+			return 'g';
+	}
 };
-var $author$project$Units$Electricity$formatGigawattHours = function (gigawattHours) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$gigawattHoursToFloat(gigawattHours)) + ' gWh';
-};
-var $author$project$Units$Electricity$kilowattHourCostToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatKilowattHourCost = function (kilowattHourCost) {
-	return $author$project$Units$Currency$formatFloatAsCurrency(
-		$author$project$Units$Electricity$kilowattHourCostToFloat(kilowattHourCost)) + '/kWh';
-};
-var $author$project$Units$Electricity$kilowattHoursToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatKilowattHours = function (kilowattHours) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$kilowattHoursToFloat(kilowattHours)) + ' kWh';
-};
-var $author$project$Units$Electricity$megawattHourCostToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatMegawattHourCost = function (megawattHourCost) {
-	return $author$project$Units$Currency$formatFloatAsCurrency(
-		$author$project$Units$Electricity$megawattHourCostToFloat(megawattHourCost)) + '/mWh';
-};
-var $author$project$Units$Electricity$megawattHoursToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatMegawattHours = function (megawattHours) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$megawattHoursToFloat(megawattHours)) + ' mWh';
-};
-var $author$project$Units$Electricity$wattHourCostToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatWattHourCost = function (wattHourCost) {
-	return $author$project$Units$Currency$formatFloatAsCurrency(
-		$author$project$Units$Electricity$wattHourCostToFloat(wattHourCost)) + '/Wh';
-};
-var $author$project$Units$Electricity$wattHoursToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatWattHours = function (wattHours) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$wattHoursToFloat(wattHours)) + ' Wh';
-};
+var $author$project$Units$Electricity$formatEnergy = F2(
+	function (newPrefix, wattHours) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$energyToFloat, newPrefix, wattHours)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'Wh'));
+	});
+var $author$project$Units$Electricity$formatEnergyCost = F2(
+	function (newPrefix, wattHourCost) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$energyCostToFloat, newPrefix, wattHourCost)) + ('/' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'Wh'));
+	});
 var $author$project$UI$pageHeader = function (content) {
 	return A2(
 		$elm$html$Html$div,
@@ -8118,6 +7982,17 @@ var $author$project$Pages$EnergyCostCalculator$renderField = F6(
 			_Utils_eq(model.solveMethod, solveMethod),
 			$author$project$Pages$EnergyCostCalculator$UpdateField(field));
 	});
+var $author$project$Pages$EnergyCostCalculator$renderMetricField = F8(
+	function (model, field, unit, prefix, label, inputFn, hintFn, solveMethod) {
+		return A6(
+			$author$project$Pages$EnergyCostCalculator$renderField,
+			model,
+			field,
+			label,
+			A2(inputFn, prefix, unit),
+			A2(hintFn, prefix, unit),
+			solveMethod);
+	});
 var $author$project$UI$resourceLink = F2(
 	function (title, toMsg) {
 		return A2(
@@ -8171,36 +8046,6 @@ var $author$project$UI$resourcesContainer = F3(
 					A2($elm$html$Html$div, _List_Nil, content)
 				]));
 	});
-var $author$project$Units$Electricity$wattHourCostToGigawattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$GigawattHourCost(
-		$author$project$Units$Metric$gigaToBase(value));
-};
-var $author$project$Units$Electricity$wattHourCostToKilowattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$KilowattHourCost(
-		$author$project$Units$Metric$kiloToBase(value));
-};
-var $author$project$Units$Electricity$wattHourCostToMegawattHourCost = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$MegawattHourCost(
-		$author$project$Units$Metric$megaToBase(value));
-};
-var $author$project$Units$Electricity$wattHoursToGigawattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$GigawattHours(
-		$author$project$Units$Metric$baseToGiga(value));
-};
-var $author$project$Units$Electricity$wattHoursToKilowattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$KilowattHours(
-		$author$project$Units$Metric$baseToKilo(value));
-};
-var $author$project$Units$Electricity$wattHoursToMegawattHours = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$MegawattHours(
-		$author$project$Units$Metric$baseToMega(value));
-};
 var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 	var altClass = 'text-gray-400 mx-2';
 	var formula = function () {
@@ -8319,44 +8164,10 @@ var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$WattHoursField,
-										'Watt Hours',
-										$author$project$Units$Electricity$wattHoursToFloat(model.wattHours),
-										$author$project$Units$Electricity$formatWattHours(model.wattHours),
-										$author$project$Pages$EnergyCostCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$KilowattHoursField,
-										'Kilowatt Hours',
-										$author$project$Units$Electricity$kilowattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToKilowattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatKilowattHours(
-											$author$project$Units$Electricity$wattHoursToKilowattHours(model.wattHours)),
-										$author$project$Pages$EnergyCostCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$MegawattHoursField,
-										'Megawatt Hours',
-										$author$project$Units$Electricity$megawattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToMegawattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatMegawattHours(
-											$author$project$Units$Electricity$wattHoursToMegawattHours(model.wattHours)),
-										$author$project$Pages$EnergyCostCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$GigawattHoursField,
-										'Gigawatt Hours',
-										$author$project$Units$Electricity$gigawattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToGigawattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatGigawattHours(
-											$author$project$Units$Electricity$wattHoursToGigawattHours(model.wattHours)),
-										$author$project$Pages$EnergyCostCalculator$EnergySolve)
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$WattHoursField, model.energy, $author$project$Units$Metric$Base, 'Watt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$EnergyCostCalculator$EnergySolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$KilowattHoursField, model.energy, $author$project$Units$Metric$Kilo, 'Kilowatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$EnergyCostCalculator$EnergySolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$MegawattHoursField, model.energy, $author$project$Units$Metric$Mega, 'Megawatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$EnergyCostCalculator$EnergySolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$GigawattHoursField, model.energy, $author$project$Units$Metric$Giga, 'Gigawatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$EnergyCostCalculator$EnergySolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -8378,44 +8189,10 @@ var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$WattHourCostField,
-										'Cost Per Watt Hour',
-										$author$project$Units$Electricity$wattHourCostToFloat(model.wattHourCost),
-										$author$project$Units$Electricity$formatWattHourCost(model.wattHourCost),
-										$author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$KilowattHourCostField,
-										'Cost Per Kilowatt Hour',
-										$author$project$Units$Electricity$kilowattHourCostToFloat(
-											$author$project$Units$Electricity$wattHourCostToKilowattHourCost(model.wattHourCost)),
-										$author$project$Units$Electricity$formatKilowattHourCost(
-											$author$project$Units$Electricity$wattHourCostToKilowattHourCost(model.wattHourCost)),
-										$author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$MegawattHourCostField,
-										'Cost Per Megawatt Hour',
-										$author$project$Units$Electricity$megawattHourCostToFloat(
-											$author$project$Units$Electricity$wattHourCostToMegawattHourCost(model.wattHourCost)),
-										$author$project$Units$Electricity$formatMegawattHourCost(
-											$author$project$Units$Electricity$wattHourCostToMegawattHourCost(model.wattHourCost)),
-										$author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
-										A6(
-										$author$project$Pages$EnergyCostCalculator$renderField,
-										model,
-										$author$project$Pages$EnergyCostCalculator$GigawattHourCostField,
-										'Cost Per Gigawatt Hour',
-										$author$project$Units$Electricity$gigawattHourCostToFloat(
-											$author$project$Units$Electricity$wattHourCostToGigawattHourCost(model.wattHourCost)),
-										$author$project$Units$Electricity$formatGigawattHourCost(
-											$author$project$Units$Electricity$wattHourCostToGigawattHourCost(model.wattHourCost)),
-										$author$project$Pages$EnergyCostCalculator$EnergyCostSolve)
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$WattHourCostField, model.energyCost, $author$project$Units$Metric$Base, 'Cost Per Watt Hour', $author$project$Units$Electricity$energyCostToFloat, $author$project$Units$Electricity$formatEnergyCost, $author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$KilowattHourCostField, model.energyCost, $author$project$Units$Metric$Kilo, 'Cost Per Kilowatt Hour', $author$project$Units$Electricity$energyCostToFloat, $author$project$Units$Electricity$formatEnergyCost, $author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$MegawattHourCostField, model.energyCost, $author$project$Units$Metric$Mega, 'Cost Per Megawatt Hour', $author$project$Units$Electricity$energyCostToFloat, $author$project$Units$Electricity$formatEnergyCost, $author$project$Pages$EnergyCostCalculator$EnergyCostSolve),
+										A8($author$project$Pages$EnergyCostCalculator$renderMetricField, model, $author$project$Pages$EnergyCostCalculator$GigawattHourCostField, model.energyCost, $author$project$Units$Metric$Giga, 'Cost Per Gigawatt Hour', $author$project$Units$Electricity$energyCostToFloat, $author$project$Units$Electricity$formatEnergyCost, $author$project$Pages$EnergyCostCalculator$EnergyCostSolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -8461,8 +8238,7 @@ var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 							A2(
 								$author$project$Pages$EnergyCostCalculator$EnergyExample,
 								$author$project$Units$Currency$Currency(50),
-								$author$project$Units$Electricity$kilowattHourCostToWattHourCost(
-									$author$project$Units$Electricity$KilowattHourCost(0.12))))),
+								A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Kilo, 0.12)))),
 						A2(
 						$author$project$UI$resourceLink,
 						'If your home typically uses 900 kilowatt hours of energy per month, what would be the cost per kilowatt in order to get your total bill below $100?',
@@ -8470,22 +8246,23 @@ var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 							A2(
 								$author$project$Pages$EnergyCostCalculator$WattHourCostExample,
 								$author$project$Units$Currency$Currency(99.99),
-								$author$project$Units$Electricity$kilowattHoursToWattHours(
-									$author$project$Units$Electricity$KilowattHours(900))))),
+								A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, 900)))),
 						A2(
 						$author$project$UI$resourceLink,
 						'The average US home uses 30kWh of energy per day. If energy costs 12 cents per kilowatt hour, what would be the daily cost?',
 						$author$project$Pages$EnergyCostCalculator$SetExample(
 							A2(
 								$author$project$Pages$EnergyCostCalculator$TotalCostExample,
-								$author$project$Units$Electricity$kilowattHoursToWattHours(
-									$author$project$Units$Electricity$KilowattHours(30)),
-								$author$project$Units$Electricity$kilowattHourCostToWattHourCost(
-									$author$project$Units$Electricity$KilowattHourCost(0.12)))))
+								A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, 30),
+								A2($author$project$Units$Electricity$floatToEnergyCost, $author$project$Units$Metric$Kilo, 0.12))))
 					]))
 			]));
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$DaysField = {$: 'DaysField'};
+var $author$project$Pages$PowerTimeEnergyCalculator$DurationExample = F2(
+	function (a, b) {
+		return {$: 'DurationExample', a: a, b: b};
+	});
 var $author$project$Pages$PowerTimeEnergyCalculator$EnergyExample = F2(
 	function (a, b) {
 		return {$: 'EnergyExample', a: a, b: b};
@@ -8509,10 +8286,6 @@ var $author$project$Pages$PowerTimeEnergyCalculator$SetExample = function (a) {
 var $author$project$Pages$PowerTimeEnergyCalculator$SetSolveMethod = function (a) {
 	return {$: 'SetSolveMethod', a: a};
 };
-var $author$project$Pages$PowerTimeEnergyCalculator$TimeExample = F2(
-	function (a, b) {
-		return {$: 'TimeExample', a: a, b: b};
-	});
 var $author$project$Pages$PowerTimeEnergyCalculator$WattHoursField = {$: 'WattHoursField'};
 var $author$project$Pages$PowerTimeEnergyCalculator$WattsField = {$: 'WattsField'};
 var $author$project$Units$Time$daysToFloat = function (_v0) {
@@ -8523,49 +8296,27 @@ var $author$project$Units$Time$formatDays = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Number$formatFloat(value) + ' days';
 };
-var $author$project$Units$Electricity$gigawattsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatGigawatts = function (gigawatts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$gigawattsToFloat(gigawatts)) + ' gW';
-};
 var $author$project$Units$Time$formatHours = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Number$formatFloat(value) + ' hrs';
-};
-var $author$project$Units$Electricity$kilowattsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatKilowatts = function (kilowatts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$kilowattsToFloat(kilowatts)) + ' kW';
-};
-var $author$project$Units$Electricity$megawattsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatMegawatts = function (megawatts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$megawattsToFloat(megawatts)) + ' mW';
 };
 var $author$project$Units$Time$formatMinutes = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Number$formatFloat(value) + ' mins';
 };
+var $author$project$Units$Electricity$powerToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$formatPower = F2(
+	function (newPrefix, watts) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$powerToFloat, newPrefix, watts)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'W'));
+	});
 var $author$project$Units$Time$formatSeconds = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Number$formatFloat(value) + ' secs';
-};
-var $author$project$Units$Electricity$wattsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatWatts = function (watts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$wattsToFloat(watts)) + ' W';
 };
 var $author$project$Units$Time$minutesToFloat = function (_v0) {
 	var value = _v0.a;
@@ -8608,6 +8359,17 @@ var $author$project$Pages$PowerTimeEnergyCalculator$renderField = F6(
 			_Utils_eq(model.solveMethod, solveMethod),
 			$author$project$Pages$PowerTimeEnergyCalculator$UpdateField(field));
 	});
+var $author$project$Pages$PowerTimeEnergyCalculator$renderMetricField = F8(
+	function (model, field, unit, prefix, label, inputFn, hintFn, solveMethod) {
+		return A6(
+			$author$project$Pages$PowerTimeEnergyCalculator$renderField,
+			model,
+			field,
+			label,
+			A2(inputFn, prefix, unit),
+			A2(hintFn, prefix, unit),
+			solveMethod);
+	});
 var $author$project$Units$Time$secondsToDays = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Time$Days(((value / 60) / 60) / 24);
@@ -8619,21 +8381,6 @@ var $author$project$Units$Time$secondsToFloat = function (_v0) {
 var $author$project$Units$Time$secondsToMinutes = function (_v0) {
 	var value = _v0.a;
 	return $author$project$Units$Time$Minutes(value / 60);
-};
-var $author$project$Units$Electricity$wattsToGigawatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Gigawatts(
-		$author$project$Units$Metric$baseToGiga(value));
-};
-var $author$project$Units$Electricity$wattsToKilowatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Kilowatts(
-		$author$project$Units$Metric$baseToKilo(value));
-};
-var $author$project$Units$Electricity$wattsToMegawatts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Megawatts(
-		$author$project$Units$Metric$baseToMega(value));
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 	var altClass = 'text-gray-400 mx-2';
@@ -8667,7 +8414,7 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 							])),
 						$elm$html$Html$text('Power')
 					]);
-			case 'TimeSolve':
+			case 'DurationSolve':
 				return _List_fromArray(
 					[
 						$elm$html$Html$text('Energy'),
@@ -8753,44 +8500,10 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$WattsField,
-										'Watts',
-										$author$project$Units$Electricity$wattsToFloat(model.watts),
-										$author$project$Units$Electricity$formatWatts(model.watts),
-										$author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$KilowattsField,
-										'Kilowatts',
-										$author$project$Units$Electricity$kilowattsToFloat(
-											$author$project$Units$Electricity$wattsToKilowatts(model.watts)),
-										$author$project$Units$Electricity$formatKilowatts(
-											$author$project$Units$Electricity$wattsToKilowatts(model.watts)),
-										$author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$MegawattsField,
-										'Megawatts',
-										$author$project$Units$Electricity$megawattsToFloat(
-											$author$project$Units$Electricity$wattsToMegawatts(model.watts)),
-										$author$project$Units$Electricity$formatMegawatts(
-											$author$project$Units$Electricity$wattsToMegawatts(model.watts)),
-										$author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$GigawattsField,
-										'Gigawatts',
-										$author$project$Units$Electricity$gigawattsToFloat(
-											$author$project$Units$Electricity$wattsToGigawatts(model.watts)),
-										$author$project$Units$Electricity$formatGigawatts(
-											$author$project$Units$Electricity$wattsToGigawatts(model.watts)),
-										$author$project$Pages$PowerTimeEnergyCalculator$PowerSolve)
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$WattsField, model.power, $author$project$Units$Metric$Base, 'Watts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$KilowattsField, model.power, $author$project$Units$Metric$Kilo, 'Kilowatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$MegawattsField, model.power, $author$project$Units$Metric$Mega, 'Megawatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$GigawattsField, model.power, $author$project$Units$Metric$Giga, 'Gigawatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -8798,16 +8511,16 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 							[
 								A2(
 								$author$project$UI$cardHeader,
-								_Utils_eq(model.solveMethod, $author$project$Pages$PowerTimeEnergyCalculator$TimeSolve),
+								_Utils_eq(model.solveMethod, $author$project$Pages$PowerTimeEnergyCalculator$DurationSolve),
 								_List_fromArray(
 									[
 										$author$project$UI$cardTitle('Time'),
 										A4(
 										$author$project$UI$cardHeaderToggleButton,
-										_Utils_eq(model.solveMethod, $author$project$Pages$PowerTimeEnergyCalculator$TimeSolve),
+										_Utils_eq(model.solveMethod, $author$project$Pages$PowerTimeEnergyCalculator$DurationSolve),
 										'Solving for Time',
 										'Solve for Time',
-										$author$project$Pages$PowerTimeEnergyCalculator$SetSolveMethod($author$project$Pages$PowerTimeEnergyCalculator$TimeSolve))
+										$author$project$Pages$PowerTimeEnergyCalculator$SetSolveMethod($author$project$Pages$PowerTimeEnergyCalculator$DurationSolve))
 									])),
 								$author$project$UI$cardBody(
 								_List_fromArray(
@@ -8817,39 +8530,39 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 										model,
 										$author$project$Pages$PowerTimeEnergyCalculator$SecondsField,
 										'Seconds',
-										$author$project$Units$Time$secondsToFloat(model.seconds),
-										$author$project$Units$Time$formatSeconds(model.seconds),
-										$author$project$Pages$PowerTimeEnergyCalculator$TimeSolve),
+										$author$project$Units$Time$secondsToFloat(model.duration),
+										$author$project$Units$Time$formatSeconds(model.duration),
+										$author$project$Pages$PowerTimeEnergyCalculator$DurationSolve),
 										A6(
 										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
 										model,
 										$author$project$Pages$PowerTimeEnergyCalculator$MinutesField,
 										'Minutes',
 										$author$project$Units$Time$minutesToFloat(
-											$author$project$Units$Time$secondsToMinutes(model.seconds)),
+											$author$project$Units$Time$secondsToMinutes(model.duration)),
 										$author$project$Units$Time$formatMinutes(
-											$author$project$Units$Time$secondsToMinutes(model.seconds)),
-										$author$project$Pages$PowerTimeEnergyCalculator$TimeSolve),
+											$author$project$Units$Time$secondsToMinutes(model.duration)),
+										$author$project$Pages$PowerTimeEnergyCalculator$DurationSolve),
 										A6(
 										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
 										model,
 										$author$project$Pages$PowerTimeEnergyCalculator$HoursField,
 										'Hours',
 										$author$project$Units$Time$hoursToFloat(
-											$author$project$Units$Time$secondsToHours(model.seconds)),
+											$author$project$Units$Time$secondsToHours(model.duration)),
 										$author$project$Units$Time$formatHours(
-											$author$project$Units$Time$secondsToHours(model.seconds)),
-										$author$project$Pages$PowerTimeEnergyCalculator$TimeSolve),
+											$author$project$Units$Time$secondsToHours(model.duration)),
+										$author$project$Pages$PowerTimeEnergyCalculator$DurationSolve),
 										A6(
 										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
 										model,
 										$author$project$Pages$PowerTimeEnergyCalculator$DaysField,
 										'Days',
 										$author$project$Units$Time$daysToFloat(
-											$author$project$Units$Time$secondsToDays(model.seconds)),
+											$author$project$Units$Time$secondsToDays(model.duration)),
 										$author$project$Units$Time$formatDays(
-											$author$project$Units$Time$secondsToDays(model.seconds)),
-										$author$project$Pages$PowerTimeEnergyCalculator$TimeSolve)
+											$author$project$Units$Time$secondsToDays(model.duration)),
+										$author$project$Pages$PowerTimeEnergyCalculator$DurationSolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -8871,44 +8584,10 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$WattHoursField,
-										'Watt Hours',
-										$author$project$Units$Electricity$wattHoursToFloat(model.wattHours),
-										$author$project$Units$Electricity$formatWattHours(model.wattHours),
-										$author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$KilowattHoursField,
-										'Kilowatt Hours',
-										$author$project$Units$Electricity$kilowattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToKilowattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatKilowattHours(
-											$author$project$Units$Electricity$wattHoursToKilowattHours(model.wattHours)),
-										$author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$MegawattHoursField,
-										'Megawatt Hours',
-										$author$project$Units$Electricity$megawattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToMegawattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatMegawattHours(
-											$author$project$Units$Electricity$wattHoursToMegawattHours(model.wattHours)),
-										$author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
-										A6(
-										$author$project$Pages$PowerTimeEnergyCalculator$renderField,
-										model,
-										$author$project$Pages$PowerTimeEnergyCalculator$GigawattHoursField,
-										'Gigawatt Hours',
-										$author$project$Units$Electricity$gigawattHoursToFloat(
-											$author$project$Units$Electricity$wattHoursToGigawattHours(model.wattHours)),
-										$author$project$Units$Electricity$formatGigawattHours(
-											$author$project$Units$Electricity$wattHoursToGigawattHours(model.wattHours)),
-										$author$project$Pages$PowerTimeEnergyCalculator$EnergySolve)
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$WattHoursField, model.energy, $author$project$Units$Metric$Base, 'Watt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$KilowattHoursField, model.energy, $author$project$Units$Metric$Kilo, 'Kilowatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$MegawattHoursField, model.energy, $author$project$Units$Metric$Mega, 'Megawatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve),
+										A8($author$project$Pages$PowerTimeEnergyCalculator$renderMetricField, model, $author$project$Pages$PowerTimeEnergyCalculator$GigawattHoursField, model.energy, $author$project$Units$Metric$Giga, 'Gigawatt Hours', $author$project$Units$Electricity$energyToFloat, $author$project$Units$Electricity$formatEnergy, $author$project$Pages$PowerTimeEnergyCalculator$EnergySolve)
 									]))
 							]))
 					])),
@@ -8924,8 +8603,7 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 						$author$project$Pages$PowerTimeEnergyCalculator$SetExample(
 							A2(
 								$author$project$Pages$PowerTimeEnergyCalculator$PowerExample,
-								$author$project$Units$Electricity$kilowattHoursToWattHours(
-									$author$project$Units$Electricity$KilowattHours(30)),
+								A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, 30),
 								$author$project$Units$Time$daysToSeconds(
 									$author$project$Units$Time$Days(1))))),
 						A2(
@@ -8933,10 +8611,9 @@ var $author$project$Pages$PowerTimeEnergyCalculator$view = function (model) {
 						'How long would it take for a central air unit running at 3000 watts to reach 30 kilowatt hours of energy?',
 						$author$project$Pages$PowerTimeEnergyCalculator$SetExample(
 							A2(
-								$author$project$Pages$PowerTimeEnergyCalculator$TimeExample,
+								$author$project$Pages$PowerTimeEnergyCalculator$DurationExample,
 								$author$project$Units$Electricity$Watts(3000),
-								$author$project$Units$Electricity$kilowattHoursToWattHours(
-									$author$project$Units$Electricity$KilowattHours(30))))),
+								A2($author$project$Units$Electricity$floatToEnergy, $author$project$Units$Metric$Kilo, 30)))),
 						A2(
 						$author$project$UI$resourceLink,
 						'How much energy would be used by a 100w light bulb in 10 hours?',
@@ -8979,98 +8656,43 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$VoltageExample = F2(
 	});
 var $author$project$Pages$VoltageCurrentPowerCalculator$VoltsField = {$: 'VoltsField'};
 var $author$project$Pages$VoltageCurrentPowerCalculator$WattsField = {$: 'WattsField'};
-var $author$project$Units$Electricity$ampsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$ampsToGigaamps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Gigaamps(
-		$author$project$Units$Metric$baseToGiga(value));
-};
-var $author$project$Units$Electricity$ampsToKiloamps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Kiloamps(
-		$author$project$Units$Metric$baseToKilo(value));
-};
-var $author$project$Units$Electricity$ampsToMegaamps = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Megaamps(
-		$author$project$Units$Metric$baseToMega(value));
-};
-var $author$project$Units$Electricity$formatAmps = function (amps) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$ampsToFloat(amps)) + ' A';
-};
-var $author$project$Units$Electricity$gigaampsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatGigaamps = function (gigaamps) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$gigaampsToFloat(gigaamps)) + ' gA';
-};
-var $author$project$Units$Electricity$gigavoltsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatGigavolts = function (gigavolts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$gigavoltsToFloat(gigavolts)) + ' gV';
-};
-var $author$project$Units$Electricity$kiloampsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatKiloamps = function (kiloamps) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$kiloampsToFloat(kiloamps)) + ' kA';
-};
-var $author$project$Units$Electricity$kilovoltsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatKilovolts = function (kilovolts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$kilovoltsToFloat(kilovolts)) + ' kV';
-};
-var $author$project$Units$Electricity$megaampsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatMegaamps = function (megaamps) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$megaampsToFloat(megaamps)) + ' mA';
-};
-var $author$project$Units$Electricity$megavoltsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatMegavolts = function (megavolts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$megavoltsToFloat(megavolts)) + ' mV';
-};
-var $author$project$Units$Electricity$voltsToFloat = function (_v0) {
-	var value = _v0.a;
-	return value;
-};
-var $author$project$Units$Electricity$formatVolts = function (volts) {
-	return $author$project$Units$Number$formatFloat(
-		$author$project$Units$Electricity$voltsToFloat(volts)) + ' V';
-};
+var $author$project$Units$Electricity$currentToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$formatCurrent = F2(
+	function (newPrefix, amps) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$currentToFloat, newPrefix, amps)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'A'));
+	});
+var $author$project$Units$Electricity$voltageToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$formatVoltage = F2(
+	function (newPrefix, volts) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$voltageToFloat, newPrefix, volts)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'V'));
+	});
 var $author$project$Pages$VoltageCurrentPowerCalculator$UpdateField = F2(
 	function (a, b) {
 		return {$: 'UpdateField', a: a, b: b};
 	});
-var $author$project$Pages$VoltageCurrentPowerCalculator$renderField = F6(
-	function (model, field, label, forInput, forHint, solveMethod) {
+var $author$project$Pages$VoltageCurrentPowerCalculator$renderField = F8(
+	function (model, field, unit, prefix, label, inputFn, hintFn, solveMethod) {
 		var _v0 = function () {
 			var _v1 = model.formStatus;
 			if (_v1.$ === 'Valid') {
-				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(model.typedValue, _List_Nil, forHint) : _Utils_Tuple3(
-					$elm$core$String$fromFloat(forInput),
+				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(
+					model.typedValue,
 					_List_Nil,
-					forHint);
+					A2(hintFn, prefix, unit)) : _Utils_Tuple3(
+					$elm$core$String$fromFloat(
+						A2(inputFn, prefix, unit)),
+					_List_Nil,
+					A2(hintFn, prefix, unit));
 			} else {
 				var errorMsg = _v1.a;
 				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(
@@ -9078,9 +8700,10 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$renderField = F6(
 					_List_fromArray(
 						[errorMsg]),
 					'') : _Utils_Tuple3(
-					$elm$core$String$fromFloat(forInput),
+					$elm$core$String$fromFloat(
+						A2(inputFn, prefix, unit)),
 					_List_Nil,
-					forHint);
+					A2(hintFn, prefix, unit));
 			}
 		}();
 		var value = _v0.a;
@@ -9095,21 +8718,6 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$renderField = F6(
 			_Utils_eq(model.solveMethod, solveMethod),
 			$author$project$Pages$VoltageCurrentPowerCalculator$UpdateField(field));
 	});
-var $author$project$Units$Electricity$voltsToGigavolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Gigavolts(
-		$author$project$Units$Metric$baseToGiga(value));
-};
-var $author$project$Units$Electricity$voltsToKilovolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Kilovolts(
-		$author$project$Units$Metric$baseToKilo(value));
-};
-var $author$project$Units$Electricity$voltsToMegavolts = function (_v0) {
-	var value = _v0.a;
-	return $author$project$Units$Electricity$Megavolts(
-		$author$project$Units$Metric$baseToMega(value));
-};
 var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) {
 	var altClass = 'text-gray-400 mx-2';
 	var formula = function () {
@@ -9228,44 +8836,10 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) 
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$VoltsField,
-										'Volts',
-										$author$project$Units$Electricity$voltsToFloat(model.volts),
-										$author$project$Units$Electricity$formatVolts(model.volts),
-										$author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$KilovoltsField,
-										'Kilovolts',
-										$author$project$Units$Electricity$kilovoltsToFloat(
-											$author$project$Units$Electricity$voltsToKilovolts(model.volts)),
-										$author$project$Units$Electricity$formatKilovolts(
-											$author$project$Units$Electricity$voltsToKilovolts(model.volts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$MegavoltsField,
-										'Megavolts',
-										$author$project$Units$Electricity$megavoltsToFloat(
-											$author$project$Units$Electricity$voltsToMegavolts(model.volts)),
-										$author$project$Units$Electricity$formatMegavolts(
-											$author$project$Units$Electricity$voltsToMegavolts(model.volts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$GigavoltsField,
-										'Gigavolts',
-										$author$project$Units$Electricity$gigavoltsToFloat(
-											$author$project$Units$Electricity$voltsToGigavolts(model.volts)),
-										$author$project$Units$Electricity$formatGigavolts(
-											$author$project$Units$Electricity$voltsToGigavolts(model.volts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve)
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$VoltsField, model.voltage, $author$project$Units$Metric$Base, 'Volts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$KilovoltsField, model.voltage, $author$project$Units$Metric$Kilo, 'Kilovolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$MegavoltsField, model.voltage, $author$project$Units$Metric$Mega, 'Megavolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$GigavoltsField, model.voltage, $author$project$Units$Metric$Giga, 'Gigavolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentPowerCalculator$VoltageSolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -9287,44 +8861,10 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) 
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$AmpsField,
-										'Amps',
-										$author$project$Units$Electricity$ampsToFloat(model.amps),
-										$author$project$Units$Electricity$formatAmps(model.amps),
-										$author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$KiloampsField,
-										'Kiloamps',
-										$author$project$Units$Electricity$kiloampsToFloat(
-											$author$project$Units$Electricity$ampsToKiloamps(model.amps)),
-										$author$project$Units$Electricity$formatKiloamps(
-											$author$project$Units$Electricity$ampsToKiloamps(model.amps)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$MegaampsField,
-										'Megaamps',
-										$author$project$Units$Electricity$megaampsToFloat(
-											$author$project$Units$Electricity$ampsToMegaamps(model.amps)),
-										$author$project$Units$Electricity$formatMegaamps(
-											$author$project$Units$Electricity$ampsToMegaamps(model.amps)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$GigaampsField,
-										'Gigaamps',
-										$author$project$Units$Electricity$gigaampsToFloat(
-											$author$project$Units$Electricity$ampsToGigaamps(model.amps)),
-										$author$project$Units$Electricity$formatGigaamps(
-											$author$project$Units$Electricity$ampsToGigaamps(model.amps)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve)
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$AmpsField, model.current, $author$project$Units$Metric$Base, 'Amps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$KiloampsField, model.current, $author$project$Units$Metric$Kilo, 'Kiloamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$MegaampsField, model.current, $author$project$Units$Metric$Mega, 'Megaamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$GigaampsField, model.current, $author$project$Units$Metric$Giga, 'Gigaamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentPowerCalculator$CurrentSolve)
 									]))
 							])),
 						$author$project$UI$cardContainer(
@@ -9346,44 +8886,10 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) 
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$WattsField,
-										'Watt',
-										$author$project$Units$Electricity$wattsToFloat(model.watts),
-										$author$project$Units$Electricity$formatWatts(model.watts),
-										$author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$KilowattsField,
-										'Kilowatt',
-										$author$project$Units$Electricity$kilowattsToFloat(
-											$author$project$Units$Electricity$wattsToKilowatts(model.watts)),
-										$author$project$Units$Electricity$formatKilowatts(
-											$author$project$Units$Electricity$wattsToKilowatts(model.watts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$MegawattsField,
-										'Megawatt',
-										$author$project$Units$Electricity$megawattsToFloat(
-											$author$project$Units$Electricity$wattsToMegawatts(model.watts)),
-										$author$project$Units$Electricity$formatMegawatts(
-											$author$project$Units$Electricity$wattsToMegawatts(model.watts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A6(
-										$author$project$Pages$VoltageCurrentPowerCalculator$renderField,
-										model,
-										$author$project$Pages$VoltageCurrentPowerCalculator$GigawattsField,
-										'Gigawatt',
-										$author$project$Units$Electricity$gigawattsToFloat(
-											$author$project$Units$Electricity$wattsToGigawatts(model.watts)),
-										$author$project$Units$Electricity$formatGigawatts(
-											$author$project$Units$Electricity$wattsToGigawatts(model.watts)),
-										$author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve)
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$WattsField, model.power, $author$project$Units$Metric$Base, 'Watt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$KilowattsField, model.power, $author$project$Units$Metric$Kilo, 'Kilowatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$MegawattsField, model.power, $author$project$Units$Metric$Mega, 'Megawatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$GigawattsField, model.power, $author$project$Units$Metric$Giga, 'Gigawatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve)
 									]))
 							]))
 					])),

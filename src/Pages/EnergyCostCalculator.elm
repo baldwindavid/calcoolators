@@ -7,43 +7,16 @@ import UI exposing (cardBody, cardContainer, cardHeader, cardHeaderToggleButton,
 import Units.Currency exposing (Currency(..), currencyToFloat, formatCurrency)
 import Units.Electricity
     exposing
-        ( GigawattHourCost(..)
-        , GigawattHours(..)
-        , KilowattHourCost(..)
-        , KilowattHours(..)
-        , MegawattHourCost(..)
-        , MegawattHours(..)
-        , WattHourCost(..)
+        ( WattHourCost(..)
         , WattHours(..)
-        , formatGigawattHourCost
-        , formatGigawattHours
-        , formatKilowattHourCost
-        , formatKilowattHours
-        , formatMegawattHourCost
-        , formatMegawattHours
-        , formatWattHourCost
-        , formatWattHours
-        , gigawattHourCostToFloat
-        , gigawattHourCostToWattHourCost
-        , gigawattHoursToFloat
-        , gigawattHoursToWattHours
-        , kilowattHourCostToFloat
-        , kilowattHourCostToWattHourCost
-        , kilowattHoursToFloat
-        , kilowattHoursToWattHours
-        , megawattHourCostToFloat
-        , megawattHourCostToWattHourCost
-        , megawattHoursToFloat
-        , megawattHoursToWattHours
-        , wattHourCostToFloat
-        , wattHourCostToGigawattHourCost
-        , wattHourCostToKilowattHourCost
-        , wattHourCostToMegawattHourCost
-        , wattHoursToFloat
-        , wattHoursToGigawattHours
-        , wattHoursToKilowattHours
-        , wattHoursToMegawattHours
+        , energyCostToFloat
+        , energyToFloat
+        , floatToEnergy
+        , floatToEnergyCost
+        , formatEnergy
+        , formatEnergyCost
         )
+import Units.Metric exposing (Prefix(..))
 import Units.Number exposing (numberStringToFloat)
 
 
@@ -58,17 +31,6 @@ type Field
     | GigawattHourCostField
     | TotalCostField
     | NoActiveField
-
-
-type alias Model =
-    { activeField : Field
-    , formStatus : CalculationResult
-    , typedValue : String
-    , wattHours : WattHours
-    , wattHourCost : WattHourCost
-    , totalCost : Currency
-    , solveMethod : SolveMethod
-    }
 
 
 type CalculationResult
@@ -89,24 +51,39 @@ type Example
 
 
 
+-- MODEL
+
+
+type alias Model =
+    { activeField : Field
+    , formStatus : CalculationResult
+    , typedValue : String
+    , energy : WattHours
+    , energyCost : WattHourCost
+    , totalCost : Currency
+    , solveMethod : SolveMethod
+    }
+
+
+
 -- INIT
 
 
 init : { currentTime : Int } -> ( Model, Cmd Msg )
 init { currentTime } =
     let
-        wattHours =
+        energy =
             WattHours 30000
 
-        wattHourCost =
-            KilowattHourCost 0.12 |> kilowattHourCostToWattHourCost
+        energyCost =
+            floatToEnergyCost Kilo 0.12
     in
     ( { activeField = NoActiveField
       , formStatus = Valid
       , typedValue = ""
-      , wattHours = wattHours
-      , wattHourCost = wattHourCost
-      , totalCost = calculateTotalCost wattHours wattHourCost
+      , energy = energy
+      , energyCost = energyCost
+      , totalCost = calculateTotalCost energy energyCost
       , solveMethod = TotalCostSolve
       }
     , Cmd.none
@@ -158,10 +135,10 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == EnergySolve) "Solving for Energy" "Solve for Energy" (SetSolveMethod EnergySolve)
                     ]
                 , cardBody
-                    [ renderField model WattHoursField "Watt Hours" (model.wattHours |> wattHoursToFloat) (model.wattHours |> formatWattHours) EnergySolve
-                    , renderField model KilowattHoursField "Kilowatt Hours" (model.wattHours |> wattHoursToKilowattHours |> kilowattHoursToFloat) (model.wattHours |> wattHoursToKilowattHours |> formatKilowattHours) EnergySolve
-                    , renderField model MegawattHoursField "Megawatt Hours" (model.wattHours |> wattHoursToMegawattHours |> megawattHoursToFloat) (model.wattHours |> wattHoursToMegawattHours |> formatMegawattHours) EnergySolve
-                    , renderField model GigawattHoursField "Gigawatt Hours" (model.wattHours |> wattHoursToGigawattHours |> gigawattHoursToFloat) (model.wattHours |> wattHoursToGigawattHours |> formatGigawattHours) EnergySolve
+                    [ renderMetricField model WattHoursField model.energy Base "Watt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model KilowattHoursField model.energy Kilo "Kilowatt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model MegawattHoursField model.energy Mega "Megawatt Hours" energyToFloat formatEnergy EnergySolve
+                    , renderMetricField model GigawattHoursField model.energy Giga "Gigawatt Hours" energyToFloat formatEnergy EnergySolve
                     ]
                 ]
             , cardContainer
@@ -170,10 +147,10 @@ view model =
                     , cardHeaderToggleButton (model.solveMethod == EnergyCostSolve) "Solving for Energy Cost" "Solve for Energy Cost" (SetSolveMethod EnergyCostSolve)
                     ]
                 , cardBody
-                    [ renderField model WattHourCostField "Cost Per Watt Hour" (model.wattHourCost |> wattHourCostToFloat) (model.wattHourCost |> formatWattHourCost) EnergyCostSolve
-                    , renderField model KilowattHourCostField "Cost Per Kilowatt Hour" (model.wattHourCost |> wattHourCostToKilowattHourCost |> kilowattHourCostToFloat) (model.wattHourCost |> wattHourCostToKilowattHourCost |> formatKilowattHourCost) EnergyCostSolve
-                    , renderField model MegawattHourCostField "Cost Per Megawatt Hour" (model.wattHourCost |> wattHourCostToMegawattHourCost |> megawattHourCostToFloat) (model.wattHourCost |> wattHourCostToMegawattHourCost |> formatMegawattHourCost) EnergyCostSolve
-                    , renderField model GigawattHourCostField "Cost Per Gigawatt Hour" (model.wattHourCost |> wattHourCostToGigawattHourCost |> gigawattHourCostToFloat) (model.wattHourCost |> wattHourCostToGigawattHourCost |> formatGigawattHourCost) EnergyCostSolve
+                    [ renderMetricField model WattHourCostField model.energyCost Base "Cost Per Watt Hour" energyCostToFloat formatEnergyCost EnergyCostSolve
+                    , renderMetricField model KilowattHourCostField model.energyCost Kilo "Cost Per Kilowatt Hour" energyCostToFloat formatEnergyCost EnergyCostSolve
+                    , renderMetricField model MegawattHourCostField model.energyCost Mega "Cost Per Megawatt Hour" energyCostToFloat formatEnergyCost EnergyCostSolve
+                    , renderMetricField model GigawattHourCostField model.energyCost Giga "Cost Per Gigawatt Hour" energyCostToFloat formatEnergyCost EnergyCostSolve
                     ]
                 ]
             , cardContainer
@@ -188,26 +165,16 @@ view model =
             ]
         , resourcesContainer "Examples"
             "Click the questions below to auto-fill the form with the solution:"
-            [ resourceLink "If the cost of energy is 12 cents per kilowatt hour, how many kilowatt hours would your central air need to use to reach a total cost of $50?" (SetExample (EnergyExample (Currency 50) (KilowattHourCost 0.12 |> kilowattHourCostToWattHourCost)))
-            , resourceLink "If your home typically uses 900 kilowatt hours of energy per month, what would be the cost per kilowatt in order to get your total bill below $100?" (SetExample (WattHourCostExample (Currency 99.99) (KilowattHours 900 |> kilowattHoursToWattHours)))
-            , resourceLink "The average US home uses 30kWh of energy per day. If energy costs 12 cents per kilowatt hour, what would be the daily cost?" (SetExample (TotalCostExample (KilowattHours 30 |> kilowattHoursToWattHours) (KilowattHourCost 0.12 |> kilowattHourCostToWattHourCost)))
+            [ resourceLink "If the cost of energy is 12 cents per kilowatt hour, how many kilowatt hours would your central air need to use to reach a total cost of $50?" (SetExample (EnergyExample (Currency 50) (floatToEnergyCost Kilo 0.12)))
+            , resourceLink "If your home typically uses 900 kilowatt hours of energy per month, what would be the cost per kilowatt in order to get your total bill below $100?" (SetExample (WattHourCostExample (Currency 99.99) (floatToEnergy Kilo 900)))
+            , resourceLink "The average US home uses 30kWh of energy per day. If energy costs 12 cents per kilowatt hour, what would be the daily cost?" (SetExample (TotalCostExample (floatToEnergy Kilo 30) (floatToEnergyCost Kilo 0.12)))
             ]
         ]
 
 
-calculateEnergy : Currency -> WattHourCost -> WattHours
-calculateEnergy (Currency totalCost) (WattHourCost wattHourCost) =
-    WattHours (totalCost / wattHourCost)
-
-
-calculateWattHourCost : Currency -> WattHours -> WattHourCost
-calculateWattHourCost (Currency totalCostFloat) (WattHours wattHoursFloat) =
-    WattHourCost (totalCostFloat / wattHoursFloat)
-
-
-calculateTotalCost : WattHours -> WattHourCost -> Currency
-calculateTotalCost (WattHours wattHoursFloat) (WattHourCost wattHourCostFloat) =
-    Currency (wattHoursFloat * wattHourCostFloat)
+renderMetricField : Model -> Field -> unit -> Prefix -> String -> (Prefix -> unit -> Float) -> (Prefix -> unit -> String) -> SolveMethod -> Html Msg
+renderMetricField model field unit prefix label inputFn hintFn solveMethod =
+    renderField model field label (inputFn prefix unit) (hintFn prefix unit) solveMethod
 
 
 renderField : Model -> Field -> String -> Float -> String -> SolveMethod -> Html Msg
@@ -242,45 +209,6 @@ type Msg
     | SetExample Example
 
 
-updateWattHours : Model -> WattHours -> Model
-updateWattHours model wattHours =
-    case model.solveMethod of
-        EnergyCostSolve ->
-            { model | wattHours = wattHours, wattHourCost = calculateWattHourCost model.totalCost wattHours }
-
-        TotalCostSolve ->
-            { model | wattHours = wattHours, totalCost = calculateTotalCost wattHours model.wattHourCost }
-
-        _ ->
-            model
-
-
-updateWattHourCost : Model -> WattHourCost -> Model
-updateWattHourCost model wattHourCost =
-    case model.solveMethod of
-        EnergySolve ->
-            { model | wattHourCost = wattHourCost, wattHours = calculateEnergy model.totalCost wattHourCost }
-
-        TotalCostSolve ->
-            { model | wattHourCost = wattHourCost, totalCost = calculateTotalCost model.wattHours wattHourCost }
-
-        _ ->
-            model
-
-
-updateTotalCost : Model -> Currency -> Model
-updateTotalCost model totalCost =
-    case model.solveMethod of
-        EnergySolve ->
-            { model | totalCost = totalCost, wattHours = calculateEnergy totalCost model.wattHourCost }
-
-        EnergyCostSolve ->
-            { model | totalCost = totalCost, wattHourCost = calculateWattHourCost totalCost model.wattHours }
-
-        _ ->
-            model
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -297,25 +225,25 @@ update msg model =
                                     updateWattHours model (WattHours floatValue)
 
                                 KilowattHoursField ->
-                                    updateWattHours model (KilowattHours floatValue |> kilowattHoursToWattHours)
+                                    updateWattHours model (floatToEnergy Kilo floatValue)
 
                                 MegawattHoursField ->
-                                    updateWattHours model (MegawattHours floatValue |> megawattHoursToWattHours)
+                                    updateWattHours model (floatToEnergy Mega floatValue)
 
                                 GigawattHoursField ->
-                                    updateWattHours model (GigawattHours floatValue |> gigawattHoursToWattHours)
+                                    updateWattHours model (floatToEnergy Giga floatValue)
 
                                 WattHourCostField ->
                                     updateWattHourCost model (WattHourCost floatValue)
 
                                 KilowattHourCostField ->
-                                    updateWattHourCost model (KilowattHourCost floatValue |> kilowattHourCostToWattHourCost)
+                                    updateWattHourCost model (floatToEnergyCost Kilo floatValue)
 
                                 MegawattHourCostField ->
-                                    updateWattHourCost model (MegawattHourCost floatValue |> megawattHourCostToWattHourCost)
+                                    updateWattHourCost model (floatToEnergyCost Mega floatValue)
 
                                 GigawattHourCostField ->
-                                    updateWattHourCost model (GigawattHourCost floatValue |> gigawattHourCostToWattHourCost)
+                                    updateWattHourCost model (floatToEnergyCost Giga floatValue)
 
                                 TotalCostField ->
                                     updateTotalCost model (Currency floatValue)
@@ -332,13 +260,67 @@ update msg model =
             let
                 newModel =
                     case example of
-                        EnergyExample totalCost wattHourCost ->
-                            { model | solveMethod = EnergySolve, totalCost = totalCost, wattHourCost = wattHourCost, wattHours = calculateEnergy totalCost wattHourCost }
+                        EnergyExample totalCost energyCost ->
+                            { model | solveMethod = EnergySolve, totalCost = totalCost, energyCost = energyCost, energy = calculateEnergy totalCost energyCost }
 
-                        WattHourCostExample totalCost wattHours ->
-                            { model | solveMethod = EnergyCostSolve, totalCost = totalCost, wattHours = wattHours, wattHourCost = calculateWattHourCost totalCost wattHours }
+                        WattHourCostExample totalCost energy ->
+                            { model | solveMethod = EnergyCostSolve, totalCost = totalCost, energy = energy, energyCost = calculateWattHourCost totalCost energy }
 
-                        TotalCostExample wattHours wattHourCost ->
-                            { model | solveMethod = TotalCostSolve, wattHours = wattHours, wattHourCost = wattHourCost, totalCost = calculateTotalCost wattHours wattHourCost }
+                        TotalCostExample energy energyCost ->
+                            { model | solveMethod = TotalCostSolve, energy = energy, energyCost = energyCost, totalCost = calculateTotalCost energy energyCost }
             in
             ( { newModel | formStatus = Valid, activeField = NoActiveField }, Cmd.none )
+
+
+updateWattHours : Model -> WattHours -> Model
+updateWattHours model energy =
+    case model.solveMethod of
+        EnergyCostSolve ->
+            { model | energy = energy, energyCost = calculateWattHourCost model.totalCost energy }
+
+        TotalCostSolve ->
+            { model | energy = energy, totalCost = calculateTotalCost energy model.energyCost }
+
+        _ ->
+            model
+
+
+updateWattHourCost : Model -> WattHourCost -> Model
+updateWattHourCost model energyCost =
+    case model.solveMethod of
+        EnergySolve ->
+            { model | energyCost = energyCost, energy = calculateEnergy model.totalCost energyCost }
+
+        TotalCostSolve ->
+            { model | energyCost = energyCost, totalCost = calculateTotalCost model.energy energyCost }
+
+        _ ->
+            model
+
+
+updateTotalCost : Model -> Currency -> Model
+updateTotalCost model totalCost =
+    case model.solveMethod of
+        EnergySolve ->
+            { model | totalCost = totalCost, energy = calculateEnergy totalCost model.energyCost }
+
+        EnergyCostSolve ->
+            { model | totalCost = totalCost, energyCost = calculateWattHourCost totalCost model.energy }
+
+        _ ->
+            model
+
+
+calculateEnergy : Currency -> WattHourCost -> WattHours
+calculateEnergy (Currency totalCost) (WattHourCost energyCost) =
+    WattHours (totalCost / energyCost)
+
+
+calculateWattHourCost : Currency -> WattHours -> WattHourCost
+calculateWattHourCost (Currency totalCostFloat) (WattHours wattHoursFloat) =
+    WattHourCost (totalCostFloat / wattHoursFloat)
+
+
+calculateTotalCost : WattHours -> WattHourCost -> Currency
+calculateTotalCost (WattHours wattHoursFloat) (WattHourCost wattHourCostFloat) =
+    Currency (wattHoursFloat * wattHourCostFloat)

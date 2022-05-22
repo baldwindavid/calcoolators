@@ -1,31 +1,65 @@
-module Units.Metric exposing (baseToGiga, baseToKilo, baseToMega, gigaToBase, kiloToBase, megaToBase)
+module Units.Metric exposing (Direction(..), Prefix(..), convertPrefix, prefixToLabel)
 
 
-baseToKilo : Float -> Float
-baseToKilo value =
-    value / 1000
+type Prefix
+    = Base
+    | Kilo
+    | Mega
+    | Giga
 
 
-baseToMega : Float -> Float
-baseToMega value =
-    value / 1000000
+type Direction
+    = ASC
+    | DESC
 
 
-baseToGiga : Float -> Float
-baseToGiga value =
-    value / 1000000000
+convertPrefix : Direction -> Float -> Prefix -> Prefix -> Float
+convertPrefix direction value oldPrefix newPrefix =
+    let
+        oldFactor =
+            prefixToFactor oldPrefix
+
+        newFactor =
+            prefixToFactor newPrefix
+
+        multiplier =
+            case direction of
+                ASC ->
+                    newFactor / oldFactor
+
+                DESC ->
+                    oldFactor / newFactor
+    in
+    value * multiplier
 
 
-kiloToBase : Float -> Float
-kiloToBase value =
-    value * 1000
+prefixToLabel : Prefix -> String
+prefixToLabel prefix =
+    case prefix of
+        Base ->
+            ""
+
+        Kilo ->
+            "k"
+
+        Mega ->
+            "m"
+
+        Giga ->
+            "g"
 
 
-megaToBase : Float -> Float
-megaToBase value =
-    value * 1000000
+prefixToFactor : Prefix -> Float
+prefixToFactor prefix =
+    case prefix of
+        Base ->
+            1
 
+        Kilo ->
+            1000
 
-gigaToBase : Float -> Float
-gigaToBase value =
-    value * 1000000000
+        Mega ->
+            1000000
+
+        Giga ->
+            1000000000

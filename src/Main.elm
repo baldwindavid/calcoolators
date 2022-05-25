@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.EnergyCostCalculator as EnergyCostCalculator
+import Pages.FrequencyRpmPolesCalculator as FrequencyRpmPolesCalculator
 import Pages.PowerTimeEnergyCalculator as PowerTimeEnergyCalculator
 import Pages.VoltageCurrentPowerCalculator as VoltageCurrentPowerCalculator
 import Routes exposing (Route(..))
@@ -30,12 +31,14 @@ type Page
     | PowerTimeEnergyCalculator PowerTimeEnergyCalculator.Model
     | VoltageCurrentPowerCalculator VoltageCurrentPowerCalculator.Model
     | EnergyCostCalculator EnergyCostCalculator.Model
+    | FrequencyRpmPolesCalculator FrequencyRpmPolesCalculator.Model
 
 
 type Msg
     = PowerTimeEnergyCalculatorMsg PowerTimeEnergyCalculator.Msg
     | VoltageCurrentPowerCalculatorMsg VoltageCurrentPowerCalculator.Msg
     | EnergyCostCalculatorMsg EnergyCostCalculator.Msg
+    | FrequencyRevolutionsPolesCalculatorMsg FrequencyRpmPolesCalculator.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
 
@@ -100,6 +103,13 @@ initCurrentPage ( model, existingCmds ) =
                             EnergyCostCalculator.init model.config
                     in
                     ( EnergyCostCalculator pageModel, Cmd.map EnergyCostCalculatorMsg pageCmds )
+
+                Routes.FrequencyRpmPolesCalculator ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            FrequencyRpmPolesCalculator.init model.config
+                    in
+                    ( FrequencyRpmPolesCalculator pageModel, Cmd.map FrequencyRevolutionsPolesCalculatorMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -125,6 +135,10 @@ view model =
                 EnergyCostCalculator pageModel ->
                     EnergyCostCalculator.view pageModel
                         |> Html.map EnergyCostCalculatorMsg
+
+                FrequencyRpmPolesCalculator pageModel ->
+                    FrequencyRpmPolesCalculator.view pageModel
+                        |> Html.map FrequencyRevolutionsPolesCalculatorMsg
     in
     { title = "CalcOOlators"
     , body =
@@ -148,6 +162,7 @@ view model =
                         [ li [] [ a [ href "/power-time-energy", class "link" ] [ text "Power, Time, and Energy" ] ]
                         , li [] [ a [ href "/energy-cost", class "link" ] [ text "Energy Cost" ] ]
                         , li [] [ a [ href "/voltage-current-power", class "link" ] [ text "Voltage, Current, and Power" ] ]
+                        , li [] [ a [ href "/frequency-revolutions-poles", class "link" ] [ text "Frequency, RPMs, and Rotor Poles" ] ]
                         ]
                     ]
                 , currentView
@@ -190,6 +205,15 @@ update msg model =
             in
             ( { model | page = EnergyCostCalculator updatedPageModel }
             , Cmd.map EnergyCostCalculatorMsg updatedCmd
+            )
+
+        ( FrequencyRevolutionsPolesCalculatorMsg subMsg, FrequencyRpmPolesCalculator pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    FrequencyRpmPolesCalculator.update subMsg pageModel
+            in
+            ( { model | page = FrequencyRpmPolesCalculator updatedPageModel }
+            , Cmd.map FrequencyRevolutionsPolesCalculatorMsg updatedCmd
             )
 
         ( LinkClicked urlRequest, _ ) ->

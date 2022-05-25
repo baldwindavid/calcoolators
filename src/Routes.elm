@@ -10,6 +10,7 @@ type Route
     | EnergyCostCalculator
     | PowerTimeEnergyCalculator
     | VoltageCurrentPowerCalculator
+    | FrequencyRpmPolesCalculator
 
 
 parseUrl : Url -> Route
@@ -29,4 +30,5 @@ matchRoute =
         , map PowerTimeEnergyCalculator (s "power-time-energy")
         , map VoltageCurrentPowerCalculator (s "voltage-current-power")
         , map EnergyCostCalculator (s "energy-cost")
+        , map FrequencyRpmPolesCalculator (s "frequency-revolutions-poles")
         ]

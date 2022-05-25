@@ -5213,6 +5213,12 @@ var $author$project$Main$EnergyCostCalculator = function (a) {
 var $author$project$Main$EnergyCostCalculatorMsg = function (a) {
 	return {$: 'EnergyCostCalculatorMsg', a: a};
 };
+var $author$project$Main$FrequencyRevolutionsPolesCalculatorMsg = function (a) {
+	return {$: 'FrequencyRevolutionsPolesCalculatorMsg', a: a};
+};
+var $author$project$Main$FrequencyRpmPolesCalculator = function (a) {
+	return {$: 'FrequencyRpmPolesCalculator', a: a};
+};
 var $author$project$Main$PowerTimeEnergyCalculator = function (a) {
 	return {$: 'PowerTimeEnergyCalculator', a: a};
 };
@@ -5290,6 +5296,41 @@ var $author$project$Pages$EnergyCostCalculator$init = function (_v0) {
 			formStatus: $author$project$Pages$EnergyCostCalculator$Valid,
 			solveMethod: $author$project$Pages$EnergyCostCalculator$TotalCostSolve,
 			totalCost: A2($author$project$Pages$EnergyCostCalculator$calculateTotalCost, energy, energyCost),
+			typedValue: ''
+		},
+		$elm$core$Platform$Cmd$none);
+};
+var $author$project$Units$Electricity$Hertz = function (a) {
+	return {$: 'Hertz', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$NoActiveField = {$: 'NoActiveField'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$Poles = function (a) {
+	return {$: 'Poles', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve = {$: 'RpmSolve'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$Valid = {$: 'Valid'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$Rpm = function (a) {
+	return {$: 'Rpm', a: a};
+};
+var $elm$core$Basics$truncate = _Basics_truncate;
+var $author$project$Pages$FrequencyRpmPolesCalculator$calculateRpm = F2(
+	function (_v0, _v1) {
+		var hertzValue = _v0.a;
+		var polesValue = _v1.a;
+		return $author$project$Pages$FrequencyRpmPolesCalculator$Rpm(((hertzValue / ((polesValue / 2) | 0)) * 60) | 0);
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$init = function (_v0) {
+	var currentTime = _v0.currentTime;
+	var poles = $author$project$Pages$FrequencyRpmPolesCalculator$Poles(2);
+	var frequency = $author$project$Units$Electricity$Hertz(60);
+	return _Utils_Tuple2(
+		{
+			activeField: $author$project$Pages$FrequencyRpmPolesCalculator$NoActiveField,
+			formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Valid,
+			frequency: frequency,
+			poles: poles,
+			rpm: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateRpm, frequency, poles),
+			solveMethod: $author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve,
 			typedValue: ''
 		},
 		$elm$core$Platform$Cmd$none);
@@ -5380,13 +5421,20 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 				return _Utils_Tuple2(
 					$author$project$Main$VoltageCurrentPowerCalculator(pageModel),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentPowerCalculatorMsg, pageCmds));
-			default:
+			case 'EnergyCostCalculator':
 				var _v6 = $author$project$Pages$EnergyCostCalculator$init(model.config);
 				var pageModel = _v6.a;
 				var pageCmds = _v6.b;
 				return _Utils_Tuple2(
 					$author$project$Main$EnergyCostCalculator(pageModel),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$EnergyCostCalculatorMsg, pageCmds));
+			default:
+				var _v7 = $author$project$Pages$FrequencyRpmPolesCalculator$init(model.config);
+				var pageModel = _v7.a;
+				var pageCmds = _v7.b;
+				return _Utils_Tuple2(
+					$author$project$Main$FrequencyRpmPolesCalculator(pageModel),
+					A2($elm$core$Platform$Cmd$map, $author$project$Main$FrequencyRevolutionsPolesCalculatorMsg, pageCmds));
 		}
 	}();
 	var currentPage = _v1.a;
@@ -5401,6 +5449,7 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 };
 var $author$project$Routes$NotFound = {$: 'NotFound'};
 var $author$project$Routes$EnergyCostCalculator = {$: 'EnergyCostCalculator'};
+var $author$project$Routes$FrequencyRpmPolesCalculator = {$: 'FrequencyRpmPolesCalculator'};
 var $author$project$Routes$Home = {$: 'Home'};
 var $author$project$Routes$PowerTimeEnergyCalculator = {$: 'PowerTimeEnergyCalculator'};
 var $author$project$Routes$VoltageCurrentPowerCalculator = {$: 'VoltageCurrentPowerCalculator'};
@@ -5517,7 +5566,11 @@ var $author$project$Routes$matchRoute = $elm$url$Url$Parser$oneOf(
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$EnergyCostCalculator,
-			$elm$url$Url$Parser$s('energy-cost'))
+			$elm$url$Url$Parser$s('energy-cost')),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Routes$FrequencyRpmPolesCalculator,
+			$elm$url$Url$Parser$s('frequency-revolutions-poles'))
 		]));
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
@@ -6450,6 +6503,230 @@ var $author$project$Pages$EnergyCostCalculator$update = F2(
 					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve = {$: 'FrequencySolve'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$HertzField = {$: 'HertzField'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$Invalid = function (a) {
+	return {$: 'Invalid', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$PolesField = {$: 'PolesField'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve = {$: 'PolesSolve'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$RpmField = {$: 'RpmField'};
+var $author$project$Pages$FrequencyRpmPolesCalculator$calculateFrequency = F2(
+	function (_v0, _v1) {
+		var polesValue = _v0.a;
+		var rpmValue = _v1.a;
+		return $author$project$Units$Electricity$Hertz((rpmValue / ((polesValue / 2) | 0)) / 60);
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$calculatePoles = F2(
+	function (_v0, _v1) {
+		var hertzValue = _v0.a;
+		var rpmValue = _v1.a;
+		return $author$project$Pages$FrequencyRpmPolesCalculator$Poles((((rpmValue / hertzValue) / 60) * 2) | 0);
+	});
+var $author$project$Units$Number$isEven = function (value) {
+	return !(value % 2);
+};
+var $author$project$Units$Number$numberStringToInt = function (numberString) {
+	return $elm$core$String$toInt(
+		A3($elm$core$String$replace, ',', '', numberString));
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'SetSolveMethod':
+				var solveMethod = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{solveMethod: solveMethod}),
+					$elm$core$Platform$Cmd$none);
+			case 'UpdateHertzField':
+				var typedValue = msg.a;
+				var _v1 = $author$project$Units$Number$numberStringToFloat(typedValue);
+				if (_v1.$ === 'Just') {
+					var floatValue = _v1.a;
+					var frequency = $author$project$Units$Electricity$Hertz(floatValue);
+					var newModel = function () {
+						var _v2 = model.solveMethod;
+						switch (_v2.$) {
+							case 'PolesSolve':
+								return _Utils_update(
+									model,
+									{
+										frequency: frequency,
+										poles: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculatePoles, frequency, model.rpm)
+									});
+							case 'RpmSolve':
+								return _Utils_update(
+									model,
+									{
+										frequency: frequency,
+										rpm: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateRpm, frequency, model.poles)
+									});
+							default:
+								return model;
+						}
+					}();
+					return _Utils_Tuple2(
+						_Utils_update(
+							newModel,
+							{activeField: $author$project$Pages$FrequencyRpmPolesCalculator$HertzField, formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Valid, typedValue: typedValue}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								activeField: $author$project$Pages$FrequencyRpmPolesCalculator$HertzField,
+								formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Invalid('must be a number'),
+								typedValue: typedValue
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			case 'UpdatePolesField':
+				var typedValue = msg.a;
+				var _v3 = $author$project$Units$Number$numberStringToInt(typedValue);
+				if (_v3.$ === 'Just') {
+					var intValue = _v3.a;
+					if ($author$project$Units$Number$isEven(intValue)) {
+						var poles = $author$project$Pages$FrequencyRpmPolesCalculator$Poles(intValue);
+						var newModel = function () {
+							var _v4 = model.solveMethod;
+							switch (_v4.$) {
+								case 'FrequencySolve':
+									return _Utils_update(
+										model,
+										{
+											frequency: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateFrequency, poles, model.rpm),
+											poles: poles
+										});
+								case 'RpmSolve':
+									return _Utils_update(
+										model,
+										{
+											poles: poles,
+											rpm: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateRpm, model.frequency, poles)
+										});
+								default:
+									return model;
+							}
+						}();
+						return _Utils_Tuple2(
+							_Utils_update(
+								newModel,
+								{activeField: $author$project$Pages$FrequencyRpmPolesCalculator$PolesField, formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Valid, typedValue: typedValue}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									activeField: $author$project$Pages$FrequencyRpmPolesCalculator$PolesField,
+									formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Invalid('must be an even integer'),
+									typedValue: typedValue
+								}),
+							$elm$core$Platform$Cmd$none);
+					}
+				} else {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								activeField: $author$project$Pages$FrequencyRpmPolesCalculator$PolesField,
+								formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Invalid('must be an even integer'),
+								typedValue: typedValue
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			case 'UpdateRpmField':
+				var typedValue = msg.a;
+				var _v5 = $author$project$Units$Number$numberStringToInt(typedValue);
+				if (_v5.$ === 'Just') {
+					var intValue = _v5.a;
+					var rpm = $author$project$Pages$FrequencyRpmPolesCalculator$Rpm(intValue);
+					var newModel = function () {
+						var _v6 = model.solveMethod;
+						switch (_v6.$) {
+							case 'FrequencySolve':
+								return _Utils_update(
+									model,
+									{
+										frequency: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateFrequency, model.poles, rpm),
+										rpm: rpm
+									});
+							case 'PolesSolve':
+								return _Utils_update(
+									model,
+									{
+										poles: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculatePoles, model.frequency, rpm),
+										rpm: rpm
+									});
+							default:
+								return model;
+						}
+					}();
+					return _Utils_Tuple2(
+						_Utils_update(
+							newModel,
+							{activeField: $author$project$Pages$FrequencyRpmPolesCalculator$RpmField, formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Valid, typedValue: typedValue}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								activeField: $author$project$Pages$FrequencyRpmPolesCalculator$RpmField,
+								formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Invalid('must be an integer'),
+								typedValue: typedValue
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			default:
+				var example = msg.a;
+				var newModel = function () {
+					switch (example.$) {
+						case 'FrequencyExample':
+							var rpm = example.a;
+							var poles = example.b;
+							return _Utils_update(
+								model,
+								{
+									frequency: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateFrequency, poles, rpm),
+									poles: poles,
+									rpm: rpm,
+									solveMethod: $author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve
+								});
+						case 'RpmExample':
+							var frequency = example.a;
+							var poles = example.b;
+							return _Utils_update(
+								model,
+								{
+									frequency: frequency,
+									poles: poles,
+									rpm: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculateRpm, frequency, poles),
+									solveMethod: $author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve
+								});
+						default:
+							var frequency = example.a;
+							var rpm = example.b;
+							return _Utils_update(
+								model,
+								{
+									frequency: frequency,
+									poles: A2($author$project$Pages$FrequencyRpmPolesCalculator$calculatePoles, frequency, rpm),
+									rpm: rpm,
+									solveMethod: $author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve
+								});
+					}
+				}();
+				return _Utils_Tuple2(
+					_Utils_update(
+						newModel,
+						{activeField: $author$project$Pages$FrequencyRpmPolesCalculator$NoActiveField, formStatus: $author$project$Pages$FrequencyRpmPolesCalculator$Valid}),
+					$elm$core$Platform$Cmd$none);
+		}
+	});
 var $author$project$Units$Time$Days = function (a) {
 	return {$: 'Days', a: a};
 };
@@ -6962,7 +7239,7 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$update = F2(
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
-		_v0$5:
+		_v0$6:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'PowerTimeEnergyCalculatorMsg':
@@ -6980,7 +7257,7 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$PowerTimeEnergyCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$5;
+						break _v0$6;
 					}
 				case 'VoltageCurrentPowerCalculatorMsg':
 					if (_v0.b.$ === 'VoltageCurrentPowerCalculator') {
@@ -6997,7 +7274,7 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentPowerCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$5;
+						break _v0$6;
 					}
 				case 'EnergyCostCalculatorMsg':
 					if (_v0.b.$ === 'EnergyCostCalculator') {
@@ -7014,7 +7291,24 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$EnergyCostCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$5;
+						break _v0$6;
+					}
+				case 'FrequencyRevolutionsPolesCalculatorMsg':
+					if (_v0.b.$ === 'FrequencyRpmPolesCalculator') {
+						var subMsg = _v0.a.a;
+						var pageModel = _v0.b.a;
+						var _v4 = A2($author$project$Pages$FrequencyRpmPolesCalculator$update, subMsg, pageModel);
+						var updatedPageModel = _v4.a;
+						var updatedCmd = _v4.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									page: $author$project$Main$FrequencyRpmPolesCalculator(updatedPageModel)
+								}),
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$FrequencyRevolutionsPolesCalculatorMsg, updatedCmd));
+					} else {
+						break _v0$6;
 					}
 				case 'LinkClicked':
 					var urlRequest = _v0.a.a;
@@ -8258,6 +8552,326 @@ var $author$project$Pages$EnergyCostCalculator$view = function (model) {
 					]))
 			]));
 };
+var $author$project$Pages$FrequencyRpmPolesCalculator$FrequencyExample = F2(
+	function (a, b) {
+		return {$: 'FrequencyExample', a: a, b: b};
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$PolesExample = F2(
+	function (a, b) {
+		return {$: 'PolesExample', a: a, b: b};
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$RpmExample = F2(
+	function (a, b) {
+		return {$: 'RpmExample', a: a, b: b};
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$SetExample = function (a) {
+	return {$: 'SetExample', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$SetSolveMethod = function (a) {
+	return {$: 'SetSolveMethod', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$UpdateHertzField = function (a) {
+	return {$: 'UpdateHertzField', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$UpdatePolesField = function (a) {
+	return {$: 'UpdatePolesField', a: a};
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$UpdateRpmField = function (a) {
+	return {$: 'UpdateRpmField', a: a};
+};
+var $author$project$Units$Electricity$frequencyToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$formatFrequency = F2(
+	function (newPrefix, hertz) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$frequencyToFloat, newPrefix, hertz)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'Hz'));
+	});
+var $author$project$Units$Number$formatInt = function (value) {
+	return A2(
+		$cuducos$elm_format_number$FormatNumber$format,
+		_Utils_update(
+			$cuducos$elm_format_number$FormatNumber$Locales$usLocale,
+			{
+				decimals: $cuducos$elm_format_number$FormatNumber$Locales$Exact(0)
+			}),
+		value);
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$formatPoles = function (_v0) {
+	var value = _v0.a;
+	return $author$project$Units$Number$formatInt(value) + ' poles';
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$formatRpm = function (_v0) {
+	var value = _v0.a;
+	return $author$project$Units$Number$formatInt(value) + ' rpm';
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$polesToInt = function (_v0) {
+	var value = _v0.a;
+	return value;
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$renderField = F7(
+	function (model, field, label, forInput, forHint, solveMethod, toMsg) {
+		var _v0 = function () {
+			var _v1 = model.formStatus;
+			if (_v1.$ === 'Valid') {
+				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(model.typedValue, _List_Nil, forHint) : _Utils_Tuple3(forInput, _List_Nil, forHint);
+			} else {
+				var errorMsg = _v1.a;
+				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(
+					model.typedValue,
+					_List_fromArray(
+						[errorMsg]),
+					'') : _Utils_Tuple3(forInput, _List_Nil, forHint);
+			}
+		}();
+		var value = _v0.a;
+		var errors = _v0.b;
+		var hint = _v0.c;
+		return A6(
+			$author$project$Forms$formControl,
+			label,
+			value,
+			errors,
+			hint,
+			_Utils_eq(model.solveMethod, solveMethod),
+			toMsg);
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$renderMetricField = F9(
+	function (model, field, unit, prefix, label, inputFn, hintFn, solveMethod, toMsg) {
+		return A7(
+			$author$project$Pages$FrequencyRpmPolesCalculator$renderField,
+			model,
+			field,
+			label,
+			$elm$core$String$fromFloat(
+				A2(inputFn, prefix, unit)),
+			A2(hintFn, prefix, unit),
+			solveMethod,
+			toMsg);
+	});
+var $author$project$Pages$FrequencyRpmPolesCalculator$rpmToInt = function (_v0) {
+	var value = _v0.a;
+	return value;
+};
+var $author$project$Pages$FrequencyRpmPolesCalculator$view = function (model) {
+	var altClass = 'text-gray-400 mx-2';
+	var formula = function () {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'FrequencySolve':
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('RPMs'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('/')
+							])),
+						$elm$html$Html$text('Poles'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('Frequency')
+					]);
+			case 'PolesSolve':
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('RPMs'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('/')
+							])),
+						$elm$html$Html$text('Frequency'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('Poles')
+					]);
+			default:
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('Frequency'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('x')
+							])),
+						$elm$html$Html$text('Poles'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('RPMs')
+					]);
+		}
+	}();
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$author$project$UI$pageHeader(formula),
+				A2(
+				$author$project$UI$cardsGrid,
+				3,
+				_List_fromArray(
+					[
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('Frequency'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve),
+										'Solving for Frequency',
+										'Solve for Frequency',
+										$author$project$Pages$FrequencyRpmPolesCalculator$SetSolveMethod($author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A9($author$project$Pages$FrequencyRpmPolesCalculator$renderMetricField, model, $author$project$Pages$FrequencyRpmPolesCalculator$HertzField, model.frequency, $author$project$Units$Metric$Base, 'Hertz', $author$project$Units$Electricity$frequencyToFloat, $author$project$Units$Electricity$formatFrequency, $author$project$Pages$FrequencyRpmPolesCalculator$FrequencySolve, $author$project$Pages$FrequencyRpmPolesCalculator$UpdateHertzField)
+									]))
+							])),
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('Rotor Poles'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve),
+										'Solving for Rotor Poles',
+										'Solve for Rotor Poles',
+										$author$project$Pages$FrequencyRpmPolesCalculator$SetSolveMethod($author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A7(
+										$author$project$Pages$FrequencyRpmPolesCalculator$renderField,
+										model,
+										$author$project$Pages$FrequencyRpmPolesCalculator$PolesField,
+										'# Poles',
+										$elm$core$String$fromInt(
+											$author$project$Pages$FrequencyRpmPolesCalculator$polesToInt(model.poles)),
+										$author$project$Pages$FrequencyRpmPolesCalculator$formatPoles(model.poles),
+										$author$project$Pages$FrequencyRpmPolesCalculator$PolesSolve,
+										$author$project$Pages$FrequencyRpmPolesCalculator$UpdatePolesField)
+									]))
+							])),
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('RPMs'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve),
+										'Solving for RPMs',
+										'Solve for RPMs',
+										$author$project$Pages$FrequencyRpmPolesCalculator$SetSolveMethod($author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A7(
+										$author$project$Pages$FrequencyRpmPolesCalculator$renderField,
+										model,
+										$author$project$Pages$FrequencyRpmPolesCalculator$RpmField,
+										'RPMs',
+										$elm$core$String$fromInt(
+											$author$project$Pages$FrequencyRpmPolesCalculator$rpmToInt(model.rpm)),
+										$author$project$Pages$FrequencyRpmPolesCalculator$formatRpm(model.rpm),
+										$author$project$Pages$FrequencyRpmPolesCalculator$RpmSolve,
+										$author$project$Pages$FrequencyRpmPolesCalculator$UpdateRpmField)
+									]))
+							]))
+					])),
+				A3(
+				$author$project$UI$resourcesContainer,
+				'Examples',
+				'Click the questions below to auto-fill the form with the solution:',
+				_List_fromArray(
+					[
+						A2(
+						$author$project$UI$resourceLink,
+						'For a frequency of 60Hz with 2 rotor poles what would be the RPMs?',
+						$author$project$Pages$FrequencyRpmPolesCalculator$SetExample(
+							A2(
+								$author$project$Pages$FrequencyRpmPolesCalculator$RpmExample,
+								$author$project$Units$Electricity$Hertz(60),
+								$author$project$Pages$FrequencyRpmPolesCalculator$Poles(2)))),
+						A2(
+						$author$project$UI$resourceLink,
+						'At 3000 RPMs with 2 rotor poles, what is the frequency?',
+						$author$project$Pages$FrequencyRpmPolesCalculator$SetExample(
+							A2(
+								$author$project$Pages$FrequencyRpmPolesCalculator$FrequencyExample,
+								$author$project$Pages$FrequencyRpmPolesCalculator$Rpm(3000),
+								$author$project$Pages$FrequencyRpmPolesCalculator$Poles(2)))),
+						A2(
+						$author$project$UI$resourceLink,
+						'How many rotor poles would there be for 7200 RPMs at a frequency of 60 Hz?',
+						$author$project$Pages$FrequencyRpmPolesCalculator$SetExample(
+							A2(
+								$author$project$Pages$FrequencyRpmPolesCalculator$PolesExample,
+								$author$project$Units$Electricity$Hertz(60),
+								$author$project$Pages$FrequencyRpmPolesCalculator$Rpm(7200))))
+					]))
+			]));
+};
 var $author$project$Pages$PowerTimeEnergyCalculator$DaysField = {$: 'DaysField'};
 var $author$project$Pages$PowerTimeEnergyCalculator$DurationExample = F2(
 	function (a, b) {
@@ -8944,12 +9558,18 @@ var $author$project$Main$view = function (model) {
 					$elm$html$Html$map,
 					$author$project$Main$VoltageCurrentPowerCalculatorMsg,
 					$author$project$Pages$VoltageCurrentPowerCalculator$view(pageModel));
-			default:
+			case 'EnergyCostCalculator':
 				var pageModel = _v0.a;
 				return A2(
 					$elm$html$Html$map,
 					$author$project$Main$EnergyCostCalculatorMsg,
 					$author$project$Pages$EnergyCostCalculator$view(pageModel));
+			default:
+				var pageModel = _v0.a;
+				return A2(
+					$elm$html$Html$map,
+					$author$project$Main$FrequencyRevolutionsPolesCalculatorMsg,
+					$author$project$Pages$FrequencyRpmPolesCalculator$view(pageModel));
 		}
 	}();
 	return {
@@ -9103,6 +9723,23 @@ var $author$project$Main$view = function (model) {
 														_List_fromArray(
 															[
 																$elm$html$Html$text('Voltage, Current, and Power')
+															]))
+													])),
+												A2(
+												$elm$html$Html$li,
+												_List_Nil,
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$a,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$href('/frequency-revolutions-poles'),
+																$elm$html$Html$Attributes$class('link')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('Frequency, RPMs, and Rotor Poles')
 															]))
 													]))
 											]))

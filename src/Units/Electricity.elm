@@ -1,5 +1,6 @@
 module Units.Electricity exposing
     ( Amps(..)
+    , Hertz(..)
     , Volts(..)
     , WattHourCost(..)
     , WattHours(..)
@@ -10,19 +11,45 @@ module Units.Electricity exposing
     , floatToCurrent
     , floatToEnergy
     , floatToEnergyCost
+    , floatToFrequency
     , floatToPower
     , floatToVoltage
     , formatCurrent
     , formatEnergy
     , formatEnergyCost
+    , formatFrequency
     , formatPower
     , formatVoltage
+    , frequencyToFloat
     , powerToFloat
     , voltageToFloat
     )
 
 import Units.Metric exposing (Direction(..), Prefix(..), convertPrefix, prefixToLabel)
 import Units.Number exposing (formatFloat)
+
+
+
+-- FREQUENCY
+
+
+type Hertz
+    = Hertz Float
+
+
+floatToFrequency : Prefix -> Float -> Hertz
+floatToFrequency oldPrefix value =
+    Hertz (convertPrefix DESC value oldPrefix Base)
+
+
+frequencyToFloat : Prefix -> Hertz -> Float
+frequencyToFloat newPrefix (Hertz value) =
+    convertPrefix DESC value Base newPrefix
+
+
+formatFrequency : Prefix -> Hertz -> String
+formatFrequency newPrefix hertz =
+    (hertz |> frequencyToFloat newPrefix |> formatFloat) ++ " " ++ prefixToLabel newPrefix ++ "Hz"
 
 
 

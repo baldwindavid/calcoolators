@@ -5231,6 +5231,12 @@ var $author$project$Main$VoltageCurrentPowerCalculator = function (a) {
 var $author$project$Main$VoltageCurrentPowerCalculatorMsg = function (a) {
 	return {$: 'VoltageCurrentPowerCalculatorMsg', a: a};
 };
+var $author$project$Main$VoltageCurrentResistanceCalculator = function (a) {
+	return {$: 'VoltageCurrentResistanceCalculator', a: a};
+};
+var $author$project$Main$VoltageCurrentResistanceCalculatorMsg = function (a) {
+	return {$: 'VoltageCurrentResistanceCalculatorMsg', a: a};
+};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Units$Metric$Kilo = {$: 'Kilo'};
 var $author$project$Pages$EnergyCostCalculator$NoActiveField = {$: 'NoActiveField'};
@@ -5244,9 +5250,9 @@ var $author$project$Units$Currency$Currency = function (a) {
 };
 var $author$project$Pages$EnergyCostCalculator$calculateTotalCost = F2(
 	function (_v0, _v1) {
-		var wattHoursFloat = _v0.a;
+		var wattHoursValue = _v0.a;
 		var wattHourCostFloat = _v1.a;
-		return $author$project$Units$Currency$Currency(wattHoursFloat * wattHourCostFloat);
+		return $author$project$Units$Currency$Currency(wattHoursValue * wattHourCostFloat);
 	});
 var $author$project$Units$Metric$ASC = {$: 'ASC'};
 var $author$project$Units$Metric$Base = {$: 'Base'};
@@ -5391,6 +5397,34 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$init = function (_v0) {
 		},
 		$elm$core$Platform$Cmd$none);
 };
+var $author$project$Pages$VoltageCurrentResistanceCalculator$NoActiveField = {$: 'NoActiveField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve = {$: 'ResistanceSolve'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$Valid = {$: 'Valid'};
+var $author$project$Units$Electricity$Ohms = function (a) {
+	return {$: 'Ohms', a: a};
+};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$calculateResistance = F2(
+	function (_v0, _v1) {
+		var voltsValue = _v0.a;
+		var ampsValue = _v1.a;
+		return $author$project$Units$Electricity$Ohms(voltsValue / ampsValue);
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$init = function (_v0) {
+	var currentTime = _v0.currentTime;
+	var voltage = $author$project$Units$Electricity$Volts(30000);
+	var current = $author$project$Units$Electricity$Amps(1000);
+	return _Utils_Tuple2(
+		{
+			activeField: $author$project$Pages$VoltageCurrentResistanceCalculator$NoActiveField,
+			current: current,
+			formStatus: $author$project$Pages$VoltageCurrentResistanceCalculator$Valid,
+			resistance: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateResistance, voltage, current),
+			solveMethod: $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve,
+			typedValue: '',
+			voltage: voltage
+		},
+		$elm$core$Platform$Cmd$none);
+};
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $author$project$Main$initCurrentPage = function (_v0) {
 	var model = _v0.a;
@@ -5421,17 +5455,24 @@ var $author$project$Main$initCurrentPage = function (_v0) {
 				return _Utils_Tuple2(
 					$author$project$Main$VoltageCurrentPowerCalculator(pageModel),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentPowerCalculatorMsg, pageCmds));
-			case 'EnergyCostCalculator':
-				var _v6 = $author$project$Pages$EnergyCostCalculator$init(model.config);
+			case 'VoltageCurrentResistanceCalculator':
+				var _v6 = $author$project$Pages$VoltageCurrentResistanceCalculator$init(model.config);
 				var pageModel = _v6.a;
 				var pageCmds = _v6.b;
+				return _Utils_Tuple2(
+					$author$project$Main$VoltageCurrentResistanceCalculator(pageModel),
+					A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentResistanceCalculatorMsg, pageCmds));
+			case 'EnergyCostCalculator':
+				var _v7 = $author$project$Pages$EnergyCostCalculator$init(model.config);
+				var pageModel = _v7.a;
+				var pageCmds = _v7.b;
 				return _Utils_Tuple2(
 					$author$project$Main$EnergyCostCalculator(pageModel),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$EnergyCostCalculatorMsg, pageCmds));
 			default:
-				var _v7 = $author$project$Pages$FrequencyRpmPolesCalculator$init(model.config);
-				var pageModel = _v7.a;
-				var pageCmds = _v7.b;
+				var _v8 = $author$project$Pages$FrequencyRpmPolesCalculator$init(model.config);
+				var pageModel = _v8.a;
+				var pageCmds = _v8.b;
 				return _Utils_Tuple2(
 					$author$project$Main$FrequencyRpmPolesCalculator(pageModel),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$FrequencyRevolutionsPolesCalculatorMsg, pageCmds));
@@ -5453,6 +5494,7 @@ var $author$project$Routes$FrequencyRpmPolesCalculator = {$: 'FrequencyRpmPolesC
 var $author$project$Routes$Home = {$: 'Home'};
 var $author$project$Routes$PowerTimeEnergyCalculator = {$: 'PowerTimeEnergyCalculator'};
 var $author$project$Routes$VoltageCurrentPowerCalculator = {$: 'VoltageCurrentPowerCalculator'};
+var $author$project$Routes$VoltageCurrentResistanceCalculator = {$: 'VoltageCurrentResistanceCalculator'};
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
 };
@@ -5563,6 +5605,10 @@ var $author$project$Routes$matchRoute = $elm$url$Url$Parser$oneOf(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$VoltageCurrentPowerCalculator,
 			$elm$url$Url$Parser$s('voltage-current-power')),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Routes$VoltageCurrentResistanceCalculator,
+			$elm$url$Url$Parser$s('voltage-current-resistance')),
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$EnergyCostCalculator,
@@ -6286,9 +6332,9 @@ var $author$project$Pages$EnergyCostCalculator$calculateEnergy = F2(
 	});
 var $author$project$Pages$EnergyCostCalculator$calculateWattHourCost = F2(
 	function (_v0, _v1) {
-		var totalCostFloat = _v0.a;
-		var wattHoursFloat = _v1.a;
-		return $author$project$Units$Electricity$WattHourCost(totalCostFloat / wattHoursFloat);
+		var totalCostValue = _v0.a;
+		var wattHoursValue = _v1.a;
+		return $author$project$Units$Electricity$WattHourCost(totalCostValue / wattHoursValue);
 	});
 var $author$project$Units$Metric$DESC = {$: 'DESC'};
 var $author$project$Units$Electricity$floatToEnergy = F2(
@@ -6743,9 +6789,9 @@ var $author$project$Units$Time$Minutes = function (a) {
 var $author$project$Pages$PowerTimeEnergyCalculator$PowerSolve = {$: 'PowerSolve'};
 var $author$project$Pages$PowerTimeEnergyCalculator$calculateDuration = F2(
 	function (_v0, _v1) {
-		var wattsFloat = _v0.a;
-		var wattHoursFloat = _v1.a;
-		return $author$project$Units$Time$Seconds((wattHoursFloat / wattsFloat) * 3600);
+		var wattsValue = _v0.a;
+		var wattHoursValue = _v1.a;
+		return $author$project$Units$Time$Seconds((wattHoursValue / wattsValue) * 3600);
 	});
 var $author$project$Units$Time$hoursToFloat = function (_v0) {
 	var value = _v0.a;
@@ -6757,9 +6803,9 @@ var $author$project$Units$Time$secondsToHours = function (_v0) {
 };
 var $author$project$Pages$PowerTimeEnergyCalculator$calculateEnergy = F2(
 	function (_v0, duration) {
-		var wattsFloat = _v0.a;
+		var wattsValue = _v0.a;
 		return $author$project$Units$Electricity$WattHours(
-			wattsFloat * $author$project$Units$Time$hoursToFloat(
+			wattsValue * $author$project$Units$Time$hoursToFloat(
 				$author$project$Units$Time$secondsToHours(duration)));
 	});
 var $author$project$Pages$PowerTimeEnergyCalculator$calculatePower = F2(
@@ -7012,9 +7058,9 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$calculateCurrent = F2(
 	});
 var $author$project$Pages$VoltageCurrentPowerCalculator$calculateVoltage = F2(
 	function (_v0, _v1) {
-		var wattsFloat = _v0.a;
+		var wattsValue = _v0.a;
 		var ampsValue = _v1.a;
-		return $author$project$Units$Electricity$Volts(wattsFloat / ampsValue);
+		return $author$project$Units$Electricity$Volts(wattsValue / ampsValue);
 	});
 var $author$project$Units$Electricity$floatToCurrent = F2(
 	function (oldPrefix, value) {
@@ -7236,10 +7282,242 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$update = F2(
 					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve = {$: 'CurrentSolve'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$Invalid = function (a) {
+	return {$: 'Invalid', a: a};
+};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve = {$: 'VoltageSolve'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$calculateCurrent = F2(
+	function (_v0, _v1) {
+		var ohmsValue = _v0.a;
+		var voltsValue = _v1.a;
+		return $author$project$Units$Electricity$Amps(voltsValue / ohmsValue);
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$calculateVoltage = F2(
+	function (_v0, _v1) {
+		var ohmsValue = _v0.a;
+		var ampsValue = _v1.a;
+		return $author$project$Units$Electricity$Volts(ohmsValue * ampsValue);
+	});
+var $author$project$Units$Electricity$floatToResistance = F2(
+	function (oldPrefix, value) {
+		return $author$project$Units$Electricity$Ohms(
+			A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, oldPrefix, $author$project$Units$Metric$Base));
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$updateCurrent = F2(
+	function (model, current) {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'ResistanceSolve':
+				return _Utils_update(
+					model,
+					{
+						current: current,
+						resistance: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateResistance, model.voltage, current)
+					});
+			case 'VoltageSolve':
+				return _Utils_update(
+					model,
+					{
+						current: current,
+						voltage: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateVoltage, model.resistance, current)
+					});
+			default:
+				return model;
+		}
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$updateResistance = F2(
+	function (model, resistance) {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'VoltageSolve':
+				return _Utils_update(
+					model,
+					{
+						resistance: resistance,
+						voltage: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateVoltage, resistance, model.current)
+					});
+			case 'CurrentSolve':
+				return _Utils_update(
+					model,
+					{
+						current: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateCurrent, resistance, model.voltage),
+						resistance: resistance
+					});
+			default:
+				return model;
+		}
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$updateVoltage = F2(
+	function (model, voltage) {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'ResistanceSolve':
+				return _Utils_update(
+					model,
+					{
+						resistance: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateResistance, voltage, model.current),
+						voltage: voltage
+					});
+			case 'CurrentSolve':
+				return _Utils_update(
+					model,
+					{
+						current: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateCurrent, model.resistance, voltage),
+						voltage: voltage
+					});
+			default:
+				return model;
+		}
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'SetSolveMethod':
+				var solveMethod = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{solveMethod: solveMethod}),
+					$elm$core$Platform$Cmd$none);
+			case 'UpdateField':
+				var field = msg.a;
+				var typedValue = msg.b;
+				var _v1 = $author$project$Units$Number$numberStringToFloat(typedValue);
+				if (_v1.$ === 'Just') {
+					var floatValue = _v1.a;
+					var newModel = function () {
+						switch (field.$) {
+							case 'OhmsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateResistance,
+									model,
+									$author$project$Units$Electricity$Ohms(floatValue));
+							case 'KiloohmsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateResistance,
+									model,
+									A2($author$project$Units$Electricity$floatToResistance, $author$project$Units$Metric$Kilo, floatValue));
+							case 'MegaohmsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateResistance,
+									model,
+									A2($author$project$Units$Electricity$floatToResistance, $author$project$Units$Metric$Mega, floatValue));
+							case 'GigaohmsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateResistance,
+									model,
+									A2($author$project$Units$Electricity$floatToResistance, $author$project$Units$Metric$Giga, floatValue));
+							case 'VoltsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateVoltage,
+									model,
+									$author$project$Units$Electricity$Volts(floatValue));
+							case 'KilovoltsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateVoltage,
+									model,
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Kilo, floatValue));
+							case 'MegavoltsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateVoltage,
+									model,
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Mega, floatValue));
+							case 'GigavoltsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateVoltage,
+									model,
+									A2($author$project$Units$Electricity$floatToVoltage, $author$project$Units$Metric$Giga, floatValue));
+							case 'AmpsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateCurrent,
+									model,
+									$author$project$Units$Electricity$Amps(floatValue));
+							case 'KiloampsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateCurrent,
+									model,
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Kilo, floatValue));
+							case 'MegaampsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateCurrent,
+									model,
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Mega, floatValue));
+							case 'GigaampsField':
+								return A2(
+									$author$project$Pages$VoltageCurrentResistanceCalculator$updateCurrent,
+									model,
+									A2($author$project$Units$Electricity$floatToCurrent, $author$project$Units$Metric$Giga, floatValue));
+							default:
+								return model;
+						}
+					}();
+					return _Utils_Tuple2(
+						_Utils_update(
+							newModel,
+							{activeField: field, formStatus: $author$project$Pages$VoltageCurrentResistanceCalculator$Valid, typedValue: typedValue}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								activeField: field,
+								formStatus: $author$project$Pages$VoltageCurrentResistanceCalculator$Invalid('must be a number'),
+								typedValue: typedValue
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			default:
+				var example = msg.a;
+				var newModel = function () {
+					switch (example.$) {
+						case 'VoltageExample':
+							var resistance = example.a;
+							var current = example.b;
+							return _Utils_update(
+								model,
+								{
+									current: current,
+									resistance: resistance,
+									solveMethod: $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve,
+									voltage: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateVoltage, resistance, current)
+								});
+						case 'CurrentExample':
+							var resistance = example.a;
+							var voltage = example.b;
+							return _Utils_update(
+								model,
+								{
+									current: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateCurrent, resistance, voltage),
+									resistance: resistance,
+									solveMethod: $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve,
+									voltage: voltage
+								});
+						default:
+							var voltage = example.a;
+							var current = example.b;
+							return _Utils_update(
+								model,
+								{
+									current: current,
+									resistance: A2($author$project$Pages$VoltageCurrentResistanceCalculator$calculateResistance, voltage, current),
+									solveMethod: $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve,
+									voltage: voltage
+								});
+					}
+				}();
+				return _Utils_Tuple2(
+					_Utils_update(
+						newModel,
+						{activeField: $author$project$Pages$VoltageCurrentResistanceCalculator$NoActiveField, formStatus: $author$project$Pages$VoltageCurrentResistanceCalculator$Valid}),
+					$elm$core$Platform$Cmd$none);
+		}
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
-		_v0$6:
+		_v0$7:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'PowerTimeEnergyCalculatorMsg':
@@ -7257,7 +7535,7 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$PowerTimeEnergyCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$6;
+						break _v0$7;
 					}
 				case 'VoltageCurrentPowerCalculatorMsg':
 					if (_v0.b.$ === 'VoltageCurrentPowerCalculator') {
@@ -7274,15 +7552,32 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentPowerCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$6;
+						break _v0$7;
+					}
+				case 'VoltageCurrentResistanceCalculatorMsg':
+					if (_v0.b.$ === 'VoltageCurrentResistanceCalculator') {
+						var subMsg = _v0.a.a;
+						var pageModel = _v0.b.a;
+						var _v3 = A2($author$project$Pages$VoltageCurrentResistanceCalculator$update, subMsg, pageModel);
+						var updatedPageModel = _v3.a;
+						var updatedCmd = _v3.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									page: $author$project$Main$VoltageCurrentResistanceCalculator(updatedPageModel)
+								}),
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$VoltageCurrentResistanceCalculatorMsg, updatedCmd));
+					} else {
+						break _v0$7;
 					}
 				case 'EnergyCostCalculatorMsg':
 					if (_v0.b.$ === 'EnergyCostCalculator') {
 						var subMsg = _v0.a.a;
 						var pageModel = _v0.b.a;
-						var _v3 = A2($author$project$Pages$EnergyCostCalculator$update, subMsg, pageModel);
-						var updatedPageModel = _v3.a;
-						var updatedCmd = _v3.b;
+						var _v4 = A2($author$project$Pages$EnergyCostCalculator$update, subMsg, pageModel);
+						var updatedPageModel = _v4.a;
+						var updatedCmd = _v4.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -7291,15 +7586,15 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$EnergyCostCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$6;
+						break _v0$7;
 					}
 				case 'FrequencyRevolutionsPolesCalculatorMsg':
 					if (_v0.b.$ === 'FrequencyRpmPolesCalculator') {
 						var subMsg = _v0.a.a;
 						var pageModel = _v0.b.a;
-						var _v4 = A2($author$project$Pages$FrequencyRpmPolesCalculator$update, subMsg, pageModel);
-						var updatedPageModel = _v4.a;
-						var updatedCmd = _v4.b;
+						var _v5 = A2($author$project$Pages$FrequencyRpmPolesCalculator$update, subMsg, pageModel);
+						var updatedPageModel = _v5.a;
+						var updatedCmd = _v5.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -7308,7 +7603,7 @@ var $author$project$Main$update = F2(
 								}),
 							A2($elm$core$Platform$Cmd$map, $author$project$Main$FrequencyRevolutionsPolesCalculatorMsg, updatedCmd));
 					} else {
-						break _v0$6;
+						break _v0$7;
 					}
 				case 'LinkClicked':
 					var urlRequest = _v0.a.a;
@@ -9500,10 +9795,10 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) 
 								$author$project$UI$cardBody(
 								_List_fromArray(
 									[
-										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$WattsField, model.power, $author$project$Units$Metric$Base, 'Watt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$KilowattsField, model.power, $author$project$Units$Metric$Kilo, 'Kilowatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$MegawattsField, model.power, $author$project$Units$Metric$Mega, 'Megawatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
-										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$GigawattsField, model.power, $author$project$Units$Metric$Giga, 'Gigawatt', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve)
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$WattsField, model.power, $author$project$Units$Metric$Base, 'Watts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$KilowattsField, model.power, $author$project$Units$Metric$Kilo, 'Kilowatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$MegawattsField, model.power, $author$project$Units$Metric$Mega, 'Megawatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve),
+										A8($author$project$Pages$VoltageCurrentPowerCalculator$renderField, model, $author$project$Pages$VoltageCurrentPowerCalculator$GigawattsField, model.power, $author$project$Units$Metric$Giga, 'Gigawatts', $author$project$Units$Electricity$powerToFloat, $author$project$Units$Electricity$formatPower, $author$project$Pages$VoltageCurrentPowerCalculator$PowerSolve)
 									]))
 							]))
 					])),
@@ -9540,6 +9835,296 @@ var $author$project$Pages$VoltageCurrentPowerCalculator$view = function (model) 
 					]))
 			]));
 };
+var $author$project$Pages$VoltageCurrentResistanceCalculator$AmpsField = {$: 'AmpsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentExample = F2(
+	function (a, b) {
+		return {$: 'CurrentExample', a: a, b: b};
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$GigaampsField = {$: 'GigaampsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$GigaohmsField = {$: 'GigaohmsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$GigavoltsField = {$: 'GigavoltsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$KiloampsField = {$: 'KiloampsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$KiloohmsField = {$: 'KiloohmsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$KilovoltsField = {$: 'KilovoltsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$MegaampsField = {$: 'MegaampsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$MegaohmsField = {$: 'MegaohmsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$MegavoltsField = {$: 'MegavoltsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$OhmsField = {$: 'OhmsField'};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceExample = F2(
+	function (a, b) {
+		return {$: 'ResistanceExample', a: a, b: b};
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$SetExample = function (a) {
+	return {$: 'SetExample', a: a};
+};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$SetSolveMethod = function (a) {
+	return {$: 'SetSolveMethod', a: a};
+};
+var $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageExample = F2(
+	function (a, b) {
+		return {$: 'VoltageExample', a: a, b: b};
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$VoltsField = {$: 'VoltsField'};
+var $author$project$Units$Electricity$resistanceToFloat = F2(
+	function (newPrefix, _v0) {
+		var value = _v0.a;
+		return A4($author$project$Units$Metric$convertPrefix, $author$project$Units$Metric$DESC, value, $author$project$Units$Metric$Base, newPrefix);
+	});
+var $author$project$Units$Electricity$formatResistance = F2(
+	function (newPrefix, watts) {
+		return $author$project$Units$Number$formatFloat(
+			A2($author$project$Units$Electricity$resistanceToFloat, newPrefix, watts)) + (' ' + ($author$project$Units$Metric$prefixToLabel(newPrefix) + 'Ω'));
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$UpdateField = F2(
+	function (a, b) {
+		return {$: 'UpdateField', a: a, b: b};
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$renderField = F8(
+	function (model, field, unit, prefix, label, inputFn, hintFn, solveMethod) {
+		var _v0 = function () {
+			var _v1 = model.formStatus;
+			if (_v1.$ === 'Valid') {
+				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(
+					model.typedValue,
+					_List_Nil,
+					A2(hintFn, prefix, unit)) : _Utils_Tuple3(
+					$elm$core$String$fromFloat(
+						A2(inputFn, prefix, unit)),
+					_List_Nil,
+					A2(hintFn, prefix, unit));
+			} else {
+				var errorMsg = _v1.a;
+				return _Utils_eq(model.activeField, field) ? _Utils_Tuple3(
+					model.typedValue,
+					_List_fromArray(
+						[errorMsg]),
+					'') : _Utils_Tuple3(
+					$elm$core$String$fromFloat(
+						A2(inputFn, prefix, unit)),
+					_List_Nil,
+					A2(hintFn, prefix, unit));
+			}
+		}();
+		var value = _v0.a;
+		var errors = _v0.b;
+		var hint = _v0.c;
+		return A6(
+			$author$project$Forms$formControl,
+			label,
+			value,
+			errors,
+			hint,
+			_Utils_eq(model.solveMethod, solveMethod),
+			$author$project$Pages$VoltageCurrentResistanceCalculator$UpdateField(field));
+	});
+var $author$project$Pages$VoltageCurrentResistanceCalculator$view = function (model) {
+	var altClass = 'text-gray-400 mx-2';
+	var formula = function () {
+		var _v0 = model.solveMethod;
+		switch (_v0.$) {
+			case 'VoltageSolve':
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('Resistance'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('x')
+							])),
+						$elm$html$Html$text('Current'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('Voltage')
+					]);
+			case 'CurrentSolve':
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('Voltage'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('/')
+							])),
+						$elm$html$Html$text('Resistance'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('Current')
+					]);
+			default:
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('Voltage'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('/')
+							])),
+						$elm$html$Html$text('Current'),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(altClass)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('=')
+							])),
+						$elm$html$Html$text('Resistance')
+					]);
+		}
+	}();
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$author$project$UI$pageHeader(formula),
+				A2(
+				$author$project$UI$cardsGrid,
+				3,
+				_List_fromArray(
+					[
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('Voltage'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve),
+										'Solving for Voltage',
+										'Solve for Voltage',
+										$author$project$Pages$VoltageCurrentResistanceCalculator$SetSolveMethod($author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltsField, model.voltage, $author$project$Units$Metric$Base, 'Volts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$KilovoltsField, model.voltage, $author$project$Units$Metric$Kilo, 'Kilovolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$MegavoltsField, model.voltage, $author$project$Units$Metric$Mega, 'Megavolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$GigavoltsField, model.voltage, $author$project$Units$Metric$Giga, 'Gigavolts', $author$project$Units$Electricity$voltageToFloat, $author$project$Units$Electricity$formatVoltage, $author$project$Pages$VoltageCurrentResistanceCalculator$VoltageSolve)
+									]))
+							])),
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('Current'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve),
+										'Solving for Current',
+										'Solve for Current',
+										$author$project$Pages$VoltageCurrentResistanceCalculator$SetSolveMethod($author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$AmpsField, model.current, $author$project$Units$Metric$Base, 'Amps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$KiloampsField, model.current, $author$project$Units$Metric$Kilo, 'Kiloamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$MegaampsField, model.current, $author$project$Units$Metric$Mega, 'Megaamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$GigaampsField, model.current, $author$project$Units$Metric$Giga, 'Gigaamps', $author$project$Units$Electricity$currentToFloat, $author$project$Units$Electricity$formatCurrent, $author$project$Pages$VoltageCurrentResistanceCalculator$CurrentSolve)
+									]))
+							])),
+						$author$project$UI$cardContainer(
+						_List_fromArray(
+							[
+								A2(
+								$author$project$UI$cardHeader,
+								_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve),
+								_List_fromArray(
+									[
+										$author$project$UI$cardTitle('Resistance'),
+										A4(
+										$author$project$UI$cardHeaderToggleButton,
+										_Utils_eq(model.solveMethod, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve),
+										'Solving for Resistance',
+										'Solve for Resistance',
+										$author$project$Pages$VoltageCurrentResistanceCalculator$SetSolveMethod($author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve))
+									])),
+								$author$project$UI$cardBody(
+								_List_fromArray(
+									[
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$OhmsField, model.resistance, $author$project$Units$Metric$Base, 'Ohms', $author$project$Units$Electricity$resistanceToFloat, $author$project$Units$Electricity$formatResistance, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$KiloohmsField, model.resistance, $author$project$Units$Metric$Kilo, 'Kiloohms', $author$project$Units$Electricity$resistanceToFloat, $author$project$Units$Electricity$formatResistance, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$MegaohmsField, model.resistance, $author$project$Units$Metric$Mega, 'Megaohms', $author$project$Units$Electricity$resistanceToFloat, $author$project$Units$Electricity$formatResistance, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve),
+										A8($author$project$Pages$VoltageCurrentResistanceCalculator$renderField, model, $author$project$Pages$VoltageCurrentResistanceCalculator$GigaohmsField, model.resistance, $author$project$Units$Metric$Giga, 'Gigaohms', $author$project$Units$Electricity$resistanceToFloat, $author$project$Units$Electricity$formatResistance, $author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceSolve)
+									]))
+							]))
+					])),
+				A3(
+				$author$project$UI$resourcesContainer,
+				'Examples',
+				'Click the questions below to auto-fill the form with the solution:',
+				_List_fromArray(
+					[
+						A2(
+						$author$project$UI$resourceLink,
+						'What would be the voltage for a lightbulb using 4.16 amps of current with a resistance of 57.7 ohms?',
+						$author$project$Pages$VoltageCurrentResistanceCalculator$SetExample(
+							A2(
+								$author$project$Pages$VoltageCurrentResistanceCalculator$VoltageExample,
+								$author$project$Units$Electricity$Ohms(57.7),
+								$author$project$Units$Electricity$Amps(4.16)))),
+						A2(
+						$author$project$UI$resourceLink,
+						'What would be the current for a flashlight bulb with a resistance of 4 ohms operating at 3 volts',
+						$author$project$Pages$VoltageCurrentResistanceCalculator$SetExample(
+							A2(
+								$author$project$Pages$VoltageCurrentResistanceCalculator$CurrentExample,
+								$author$project$Units$Electricity$Ohms(4),
+								$author$project$Units$Electricity$Volts(3)))),
+						A2(
+						$author$project$UI$resourceLink,
+						'What would be the resistance of a lightbulb operating at 120 volts using 0.83 amps of current?',
+						$author$project$Pages$VoltageCurrentResistanceCalculator$SetExample(
+							A2(
+								$author$project$Pages$VoltageCurrentResistanceCalculator$ResistanceExample,
+								$author$project$Units$Electricity$Volts(120),
+								$author$project$Units$Electricity$Amps(0.83))))
+					]))
+			]));
+};
 var $author$project$Main$view = function (model) {
 	var currentView = function () {
 		var _v0 = model.page;
@@ -9558,6 +10143,12 @@ var $author$project$Main$view = function (model) {
 					$elm$html$Html$map,
 					$author$project$Main$VoltageCurrentPowerCalculatorMsg,
 					$author$project$Pages$VoltageCurrentPowerCalculator$view(pageModel));
+			case 'VoltageCurrentResistanceCalculator':
+				var pageModel = _v0.a;
+				return A2(
+					$elm$html$Html$map,
+					$author$project$Main$VoltageCurrentResistanceCalculatorMsg,
+					$author$project$Pages$VoltageCurrentResistanceCalculator$view(pageModel));
 			case 'EnergyCostCalculator':
 				var pageModel = _v0.a;
 				return A2(
@@ -9723,6 +10314,23 @@ var $author$project$Main$view = function (model) {
 														_List_fromArray(
 															[
 																$elm$html$Html$text('Voltage, Current, and Power')
+															]))
+													])),
+												A2(
+												$elm$html$Html$li,
+												_List_Nil,
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$a,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$href('/voltage-current-resistance'),
+																$elm$html$Html$Attributes$class('link')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('Voltage, Current, and Resistance')
 															]))
 													])),
 												A2(

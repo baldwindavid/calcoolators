@@ -10,6 +10,7 @@ type Route
     | EnergyCostCalculator
     | PowerTimeEnergyCalculator
     | VoltageCurrentPowerCalculator
+    | VoltageCurrentResistanceCalculator
     | FrequencyRpmPolesCalculator
 
 
@@ -29,6 +30,7 @@ matchRoute =
         [ map Home top
         , map PowerTimeEnergyCalculator (s "power-time-energy")
         , map VoltageCurrentPowerCalculator (s "voltage-current-power")
+        , map VoltageCurrentResistanceCalculator (s "voltage-current-resistance")
         , map EnergyCostCalculator (s "energy-cost")
         , map FrequencyRpmPolesCalculator (s "frequency-revolutions-poles")
         ]

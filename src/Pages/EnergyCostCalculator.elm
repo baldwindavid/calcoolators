@@ -317,10 +317,10 @@ calculateEnergy (Currency totalCost) (WattHourCost energyCost) =
 
 
 calculateWattHourCost : Currency -> WattHours -> WattHourCost
-calculateWattHourCost (Currency totalCostFloat) (WattHours wattHoursFloat) =
-    WattHourCost (totalCostFloat / wattHoursFloat)
+calculateWattHourCost (Currency totalCostValue) (WattHours wattHoursValue) =
+    WattHourCost (totalCostValue / wattHoursValue)
 
 
 calculateTotalCost : WattHours -> WattHourCost -> Currency
-calculateTotalCost (WattHours wattHoursFloat) (WattHourCost wattHourCostFloat) =
-    Currency (wattHoursFloat * wattHourCostFloat)
+calculateTotalCost (WattHours wattHoursValue) (WattHourCost wattHourCostFloat) =
+    Currency (wattHoursValue * wattHourCostFloat)

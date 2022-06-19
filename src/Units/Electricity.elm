@@ -1,6 +1,7 @@
 module Units.Electricity exposing
     ( Amps(..)
     , Hertz(..)
+    , Ohms(..)
     , Volts(..)
     , WattHourCost(..)
     , WattHours(..)
@@ -13,15 +14,18 @@ module Units.Electricity exposing
     , floatToEnergyCost
     , floatToFrequency
     , floatToPower
+    , floatToResistance
     , floatToVoltage
     , formatCurrent
     , formatEnergy
     , formatEnergyCost
     , formatFrequency
     , formatPower
+    , formatResistance
     , formatVoltage
     , frequencyToFloat
     , powerToFloat
+    , resistanceToFloat
     , voltageToFloat
     )
 
@@ -119,6 +123,29 @@ powerToFloat newPrefix (Watts value) =
 formatPower : Prefix -> Watts -> String
 formatPower newPrefix watts =
     (watts |> powerToFloat newPrefix |> formatFloat) ++ " " ++ prefixToLabel newPrefix ++ "W"
+
+
+
+-- RESISTANCE
+
+
+type Ohms
+    = Ohms Float
+
+
+floatToResistance : Prefix -> Float -> Ohms
+floatToResistance oldPrefix value =
+    Ohms (convertPrefix DESC value oldPrefix Base)
+
+
+resistanceToFloat : Prefix -> Ohms -> Float
+resistanceToFloat newPrefix (Ohms value) =
+    convertPrefix DESC value Base newPrefix
+
+
+formatResistance : Prefix -> Ohms -> String
+formatResistance newPrefix watts =
+    (watts |> resistanceToFloat newPrefix |> formatFloat) ++ " " ++ prefixToLabel newPrefix ++ "Ω"
 
 
 

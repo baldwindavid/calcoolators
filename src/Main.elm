@@ -8,6 +8,7 @@ import Pages.EnergyCostCalculator as EnergyCostCalculator
 import Pages.FrequencyRpmPolesCalculator as FrequencyRpmPolesCalculator
 import Pages.PowerTimeEnergyCalculator as PowerTimeEnergyCalculator
 import Pages.VoltageCurrentPowerCalculator as VoltageCurrentPowerCalculator
+import Pages.VoltageCurrentResistanceCalculator as VoltageCurrentResistanceCalculator
 import Routes exposing (Route(..))
 import Time
 import Url exposing (Url)
@@ -30,6 +31,7 @@ type Page
     = NotFound
     | PowerTimeEnergyCalculator PowerTimeEnergyCalculator.Model
     | VoltageCurrentPowerCalculator VoltageCurrentPowerCalculator.Model
+    | VoltageCurrentResistanceCalculator VoltageCurrentResistanceCalculator.Model
     | EnergyCostCalculator EnergyCostCalculator.Model
     | FrequencyRpmPolesCalculator FrequencyRpmPolesCalculator.Model
 
@@ -37,6 +39,7 @@ type Page
 type Msg
     = PowerTimeEnergyCalculatorMsg PowerTimeEnergyCalculator.Msg
     | VoltageCurrentPowerCalculatorMsg VoltageCurrentPowerCalculator.Msg
+    | VoltageCurrentResistanceCalculatorMsg VoltageCurrentResistanceCalculator.Msg
     | EnergyCostCalculatorMsg EnergyCostCalculator.Msg
     | FrequencyRevolutionsPolesCalculatorMsg FrequencyRpmPolesCalculator.Msg
     | LinkClicked UrlRequest
@@ -97,6 +100,13 @@ initCurrentPage ( model, existingCmds ) =
                     in
                     ( VoltageCurrentPowerCalculator pageModel, Cmd.map VoltageCurrentPowerCalculatorMsg pageCmds )
 
+                Routes.VoltageCurrentResistanceCalculator ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            VoltageCurrentResistanceCalculator.init model.config
+                    in
+                    ( VoltageCurrentResistanceCalculator pageModel, Cmd.map VoltageCurrentResistanceCalculatorMsg pageCmds )
+
                 Routes.EnergyCostCalculator ->
                     let
                         ( pageModel, pageCmds ) =
@@ -132,6 +142,10 @@ view model =
                     VoltageCurrentPowerCalculator.view pageModel
                         |> Html.map VoltageCurrentPowerCalculatorMsg
 
+                VoltageCurrentResistanceCalculator pageModel ->
+                    VoltageCurrentResistanceCalculator.view pageModel
+                        |> Html.map VoltageCurrentResistanceCalculatorMsg
+
                 EnergyCostCalculator pageModel ->
                     EnergyCostCalculator.view pageModel
                         |> Html.map EnergyCostCalculatorMsg
@@ -162,6 +176,7 @@ view model =
                         [ li [] [ a [ href "/power-time-energy", class "link" ] [ text "Power, Time, and Energy" ] ]
                         , li [] [ a [ href "/energy-cost", class "link" ] [ text "Energy Cost" ] ]
                         , li [] [ a [ href "/voltage-current-power", class "link" ] [ text "Voltage, Current, and Power" ] ]
+                        , li [] [ a [ href "/voltage-current-resistance", class "link" ] [ text "Voltage, Current, and Resistance" ] ]
                         , li [] [ a [ href "/frequency-revolutions-poles", class "link" ] [ text "Frequency, RPMs, and Rotor Poles" ] ]
                         ]
                     ]
@@ -196,6 +211,15 @@ update msg model =
             in
             ( { model | page = VoltageCurrentPowerCalculator updatedPageModel }
             , Cmd.map VoltageCurrentPowerCalculatorMsg updatedCmd
+            )
+
+        ( VoltageCurrentResistanceCalculatorMsg subMsg, VoltageCurrentResistanceCalculator pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    VoltageCurrentResistanceCalculator.update subMsg pageModel
+            in
+            ( { model | page = VoltageCurrentResistanceCalculator updatedPageModel }
+            , Cmd.map VoltageCurrentResistanceCalculatorMsg updatedCmd
             )
 
         ( EnergyCostCalculatorMsg subMsg, EnergyCostCalculator pageModel ) ->

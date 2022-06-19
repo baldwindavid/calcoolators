@@ -352,10 +352,10 @@ calculatePower (WattHours wattHoursValue) duration =
 
 
 calculateDuration : Watts -> WattHours -> Seconds
-calculateDuration (Watts wattsFloat) (WattHours wattHoursFloat) =
-    Seconds (wattHoursFloat / wattsFloat * 3600)
+calculateDuration (Watts wattsValue) (WattHours wattHoursValue) =
+    Seconds (wattHoursValue / wattsValue * 3600)
 
 
 calculateEnergy : Watts -> Seconds -> WattHours
-calculateEnergy (Watts wattsFloat) duration =
-    WattHours (wattsFloat * (duration |> secondsToHours |> hoursToFloat))
+calculateEnergy (Watts wattsValue) duration =
+    WattHours (wattsValue * (duration |> secondsToHours |> hoursToFloat))

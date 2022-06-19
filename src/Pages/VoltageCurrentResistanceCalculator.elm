@@ -1,4 +1,4 @@
-module Pages.VoltageCurrentPowerCalculator exposing (Model, Msg, init, update, view)
+module Pages.VoltageCurrentResistanceCalculator exposing (Model, Msg, init, update, view)
 
 import Forms exposing (formControl)
 import Html exposing (..)
@@ -7,16 +7,16 @@ import UI exposing (cardBody, cardContainer, cardHeader, cardHeaderToggleButton,
 import Units.Electricity
     exposing
         ( Amps(..)
+        , Ohms(..)
         , Volts(..)
-        , Watts(..)
         , currentToFloat
         , floatToCurrent
-        , floatToPower
+        , floatToResistance
         , floatToVoltage
         , formatCurrent
-        , formatPower
+        , formatResistance
         , formatVoltage
-        , powerToFloat
+        , resistanceToFloat
         , voltageToFloat
         )
 import Units.Metric exposing (Prefix(..))
@@ -24,10 +24,10 @@ import Units.Number exposing (numberStringToFloat)
 
 
 type Field
-    = WattsField
-    | KilowattsField
-    | MegawattsField
-    | GigawattsField
+    = OhmsField
+    | KiloohmsField
+    | MegaohmsField
+    | GigaohmsField
     | VoltsField
     | KilovoltsField
     | MegavoltsField
@@ -45,15 +45,15 @@ type CalculationResult
 
 
 type SolveMethod
-    = PowerSolve
+    = ResistanceSolve
     | VoltageSolve
     | CurrentSolve
 
 
 type Example
-    = VoltageExample Watts Amps
-    | CurrentExample Watts Volts
-    | PowerExample Volts Amps
+    = VoltageExample Ohms Amps
+    | CurrentExample Ohms Volts
+    | ResistanceExample Volts Amps
 
 
 
@@ -61,7 +61,7 @@ type Example
 
 
 type alias Model =
-    { power : Watts
+    { resistance : Ohms
     , voltage : Volts
     , current : Amps
     , activeField : Field
@@ -84,13 +84,13 @@ init { currentTime } =
         current =
             Amps 1000
     in
-    ( { power = calculatePower voltage current
+    ( { resistance = calculateResistance voltage current
       , activeField = NoActiveField
       , formStatus = Valid
       , typedValue = ""
       , voltage = voltage
       , current = current
-      , solveMethod = PowerSolve
+      , solveMethod = ResistanceSolve
       }
     , Cmd.none
     )
@@ -109,27 +109,27 @@ view model =
         formula =
             case model.solveMethod of
                 VoltageSolve ->
-                    [ text "Power"
-                    , span [ class altClass ] [ text "/" ]
+                    [ text "Resistance"
+                    , span [ class altClass ] [ text "x" ]
                     , text "Current"
                     , span [ class altClass ] [ text "=" ]
                     , text "Voltage"
                     ]
 
                 CurrentSolve ->
-                    [ text "Power"
+                    [ text "Voltage"
                     , span [ class altClass ] [ text "/" ]
-                    , text "Voltage"
+                    , text "Resistance"
                     , span [ class altClass ] [ text "=" ]
                     , text "Current"
                     ]
 
-                PowerSolve ->
+                ResistanceSolve ->
                     [ text "Voltage"
-                    , span [ class altClass ] [ text "x" ]
+                    , span [ class altClass ] [ text "/" ]
                     , text "Current"
                     , span [ class altClass ] [ text "=" ]
-                    , text "Power"
+                    , text "Resistance"
                     ]
     in
     div []
@@ -160,23 +160,23 @@ view model =
                     ]
                 ]
             , cardContainer
-                [ cardHeader (model.solveMethod == PowerSolve)
-                    [ cardTitle "Power"
-                    , cardHeaderToggleButton (model.solveMethod == PowerSolve) "Solving for Power" "Solve for Power" (SetSolveMethod PowerSolve)
+                [ cardHeader (model.solveMethod == ResistanceSolve)
+                    [ cardTitle "Resistance"
+                    , cardHeaderToggleButton (model.solveMethod == ResistanceSolve) "Solving for Resistance" "Solve for Resistance" (SetSolveMethod ResistanceSolve)
                     ]
                 , cardBody
-                    [ renderField model WattsField model.power Base "Watts" powerToFloat formatPower PowerSolve
-                    , renderField model KilowattsField model.power Kilo "Kilowatts" powerToFloat formatPower PowerSolve
-                    , renderField model MegawattsField model.power Mega "Megawatts" powerToFloat formatPower PowerSolve
-                    , renderField model GigawattsField model.power Giga "Gigawatts" powerToFloat formatPower PowerSolve
+                    [ renderField model OhmsField model.resistance Base "Ohms" resistanceToFloat formatResistance ResistanceSolve
+                    , renderField model KiloohmsField model.resistance Kilo "Kiloohms" resistanceToFloat formatResistance ResistanceSolve
+                    , renderField model MegaohmsField model.resistance Mega "Megaohms" resistanceToFloat formatResistance ResistanceSolve
+                    , renderField model GigaohmsField model.resistance Giga "Gigaohms" resistanceToFloat formatResistance ResistanceSolve
                     ]
                 ]
             ]
         , resourcesContainer "Examples"
             "Click the questions below to auto-fill the form with the solution:"
-            [ resourceLink "What would be the voltage for a central air unit running at 3000 watts and using 12.5 amps?" (SetExample (VoltageExample (Watts 3000) (Amps 12.5)))
-            , resourceLink "What would be the current for a 100 watt light bulb operating at 120 volts?" (SetExample (CurrentExample (Watts 100) (Volts 120)))
-            , resourceLink "What would be the power for a refrigerator with a voltage of 240 volts and current of 2.5 amps" (SetExample (PowerExample (Volts 240) (Amps 2.5)))
+            [ resourceLink "What would be the voltage for a lightbulb using 4.16 amps of current with a resistance of 57.7 ohms?" (SetExample (VoltageExample (Ohms 57.7) (Amps 4.16)))
+            , resourceLink "What would be the current for a flashlight bulb with a resistance of 4 ohms operating at 3 volts" (SetExample (CurrentExample (Ohms 4) (Volts 3)))
+            , resourceLink "What would be the resistance of a lightbulb operating at 120 volts using 0.83 amps of current?" (SetExample (ResistanceExample (Volts 120) (Amps 0.83)))
             ]
         ]
 
@@ -225,17 +225,17 @@ update msg model =
                     let
                         newModel =
                             case field of
-                                WattsField ->
-                                    updatePower model (Watts floatValue)
+                                OhmsField ->
+                                    updateResistance model (Ohms floatValue)
 
-                                KilowattsField ->
-                                    updatePower model (floatToPower Kilo floatValue)
+                                KiloohmsField ->
+                                    updateResistance model (floatToResistance Kilo floatValue)
 
-                                MegawattsField ->
-                                    updatePower model (floatToPower Mega floatValue)
+                                MegaohmsField ->
+                                    updateResistance model (floatToResistance Mega floatValue)
 
-                                GigawattsField ->
-                                    updatePower model (floatToPower Giga floatValue)
+                                GigaohmsField ->
+                                    updateResistance model (floatToResistance Giga floatValue)
 
                                 VoltsField ->
                                     updateVoltage model (Volts floatValue)
@@ -273,26 +273,26 @@ update msg model =
             let
                 newModel =
                     case example of
-                        VoltageExample power current ->
-                            { model | solveMethod = VoltageSolve, power = power, current = current, voltage = calculateVoltage power current }
+                        VoltageExample resistance current ->
+                            { model | solveMethod = VoltageSolve, resistance = resistance, current = current, voltage = calculateVoltage resistance current }
 
-                        CurrentExample power voltage ->
-                            { model | solveMethod = CurrentSolve, power = power, voltage = voltage, current = calculateCurrent power voltage }
+                        CurrentExample resistance voltage ->
+                            { model | solveMethod = CurrentSolve, resistance = resistance, voltage = voltage, current = calculateCurrent resistance voltage }
 
-                        PowerExample voltage current ->
-                            { model | solveMethod = PowerSolve, voltage = voltage, current = current, power = calculatePower voltage current }
+                        ResistanceExample voltage current ->
+                            { model | solveMethod = ResistanceSolve, voltage = voltage, current = current, resistance = calculateResistance voltage current }
             in
             ( { newModel | formStatus = Valid, activeField = NoActiveField }, Cmd.none )
 
 
-updatePower : Model -> Watts -> Model
-updatePower model power =
+updateResistance : Model -> Ohms -> Model
+updateResistance model resistance =
     case model.solveMethod of
         VoltageSolve ->
-            { model | power = power, voltage = calculateVoltage power model.current }
+            { model | resistance = resistance, voltage = calculateVoltage resistance model.current }
 
         CurrentSolve ->
-            { model | power = power, current = calculateCurrent power model.voltage }
+            { model | resistance = resistance, current = calculateCurrent resistance model.voltage }
 
         _ ->
             model
@@ -301,11 +301,11 @@ updatePower model power =
 updateVoltage : Model -> Volts -> Model
 updateVoltage model voltage =
     case model.solveMethod of
-        PowerSolve ->
-            { model | voltage = voltage, power = calculatePower voltage model.current }
+        ResistanceSolve ->
+            { model | voltage = voltage, resistance = calculateResistance voltage model.current }
 
         CurrentSolve ->
-            { model | voltage = voltage, current = calculateCurrent model.power voltage }
+            { model | voltage = voltage, current = calculateCurrent model.resistance voltage }
 
         _ ->
             model
@@ -314,26 +314,26 @@ updateVoltage model voltage =
 updateCurrent : Model -> Amps -> Model
 updateCurrent model current =
     case model.solveMethod of
-        PowerSolve ->
-            { model | current = current, power = calculatePower model.voltage current }
+        ResistanceSolve ->
+            { model | current = current, resistance = calculateResistance model.voltage current }
 
         VoltageSolve ->
-            { model | current = current, voltage = calculateVoltage model.power current }
+            { model | current = current, voltage = calculateVoltage model.resistance current }
 
         _ ->
             model
 
 
-calculateVoltage : Watts -> Amps -> Volts
-calculateVoltage (Watts wattsValue) (Amps ampsValue) =
-    Volts (wattsValue / ampsValue)
+calculateVoltage : Ohms -> Amps -> Volts
+calculateVoltage (Ohms ohmsValue) (Amps ampsValue) =
+    Volts (ohmsValue * ampsValue)
 
 
-calculateCurrent : Watts -> Volts -> Amps
-calculateCurrent (Watts wattsValue) (Volts voltsValue) =
-    Amps (wattsValue / voltsValue)
+calculateCurrent : Ohms -> Volts -> Amps
+calculateCurrent (Ohms ohmsValue) (Volts voltsValue) =
+    Amps (voltsValue / ohmsValue)
 
 
-calculatePower : Volts -> Amps -> Watts
-calculatePower (Volts voltsValue) (Amps ampsValue) =
-    Watts (voltsValue * ampsValue)
+calculateResistance : Volts -> Amps -> Ohms
+calculateResistance (Volts voltsValue) (Amps ampsValue) =
+    Ohms (voltsValue / ampsValue)

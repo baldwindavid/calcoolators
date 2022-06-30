@@ -28,9 +28,9 @@ matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map Home top
-        , map PowerTimeEnergyCalculator (s "power-time-energy")
-        , map VoltageCurrentPowerCalculator (s "voltage-current-power")
-        , map VoltageCurrentResistanceCalculator (s "voltage-current-resistance")
-        , map EnergyCostCalculator (s "energy-cost")
-        , map FrequencyRpmPolesCalculator (s "frequency-revolutions-poles")
+        , map PowerTimeEnergyCalculator (s "electricity" </> s "power-time-energy")
+        , map VoltageCurrentPowerCalculator (s "electricity" </> s "voltage-current-power")
+        , map VoltageCurrentResistanceCalculator (s "electricity" </> s "voltage-current-resistance")
+        , map EnergyCostCalculator (s "electricity" </> s "energy-cost")
+        , map FrequencyRpmPolesCalculator (s "electricity" </> s "frequency-revolutions-poles")
         ]

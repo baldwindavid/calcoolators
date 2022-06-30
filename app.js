@@ -5588,6 +5588,18 @@ var $elm$url$Url$Parser$s = function (str) {
 			}
 		});
 };
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
 var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
 	function (state) {
 		return _List_fromArray(
@@ -5600,23 +5612,38 @@ var $author$project$Routes$matchRoute = $elm$url$Url$Parser$oneOf(
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$PowerTimeEnergyCalculator,
-			$elm$url$Url$Parser$s('power-time-energy')),
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('electricity'),
+				$elm$url$Url$Parser$s('power-time-energy'))),
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$VoltageCurrentPowerCalculator,
-			$elm$url$Url$Parser$s('voltage-current-power')),
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('electricity'),
+				$elm$url$Url$Parser$s('voltage-current-power'))),
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$VoltageCurrentResistanceCalculator,
-			$elm$url$Url$Parser$s('voltage-current-resistance')),
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('electricity'),
+				$elm$url$Url$Parser$s('voltage-current-resistance'))),
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$EnergyCostCalculator,
-			$elm$url$Url$Parser$s('energy-cost')),
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('electricity'),
+				$elm$url$Url$Parser$s('energy-cost'))),
 			A2(
 			$elm$url$Url$Parser$map,
 			$author$project$Routes$FrequencyRpmPolesCalculator,
-			$elm$url$Url$Parser$s('frequency-revolutions-poles'))
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('electricity'),
+				$elm$url$Url$Parser$s('frequency-revolutions-poles')))
 		]));
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
@@ -10218,7 +10245,7 @@ var $author$project$Main$view = function (model) {
 																$elm$html$Html$a,
 																_List_fromArray(
 																	[
-																		$elm$html$Html$Attributes$href('/power-time-energy')
+																		$elm$html$Html$Attributes$href('/electricity/power-time-energy')
 																	]),
 																_List_fromArray(
 																	[
@@ -10274,7 +10301,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$a,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$href('/power-time-energy'),
+																$elm$html$Html$Attributes$href('/electricity/power-time-energy'),
 																$elm$html$Html$Attributes$class('link')
 															]),
 														_List_fromArray(
@@ -10291,7 +10318,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$a,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$href('/energy-cost'),
+																$elm$html$Html$Attributes$href('/electricity/energy-cost'),
 																$elm$html$Html$Attributes$class('link')
 															]),
 														_List_fromArray(
@@ -10308,7 +10335,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$a,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$href('/voltage-current-power'),
+																$elm$html$Html$Attributes$href('/electricity/voltage-current-power'),
 																$elm$html$Html$Attributes$class('link')
 															]),
 														_List_fromArray(
@@ -10325,7 +10352,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$a,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$href('/voltage-current-resistance'),
+																$elm$html$Html$Attributes$href('/electricity/voltage-current-resistance'),
 																$elm$html$Html$Attributes$class('link')
 															]),
 														_List_fromArray(
@@ -10342,7 +10369,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$a,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$href('/frequency-revolutions-poles'),
+																$elm$html$Html$Attributes$href('/electricity/frequency-revolutions-poles'),
 																$elm$html$Html$Attributes$class('link')
 															]),
 														_List_fromArray(
